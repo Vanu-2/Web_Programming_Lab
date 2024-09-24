@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DMeal - Administrator Dashboard</title>
+    <title>DMeal - Approve Voter Registration</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Additional styling using Tailwind utility classes */
@@ -36,10 +36,10 @@
                 <a href="modify_voter_info.html" class="block">Modify Voter Information</a>
             </li>
             <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="modify_manager_info.php" class="block">Modify Candidate List</a>
+                <a href="modify_candidate_list.html" class="block">Modify Candidate List</a>
             </li>
             <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="publish_results.php" class="block">Publish result</a>
+                <a href="result_publish.html" class="block">Publish result</a>
             </li>
         </ul>
     </div>
@@ -48,7 +48,7 @@
     <div class="ml-64 p-8 flex-grow">
 
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Admin Dashboard</h1>
+            <h1 class="text-3xl font-bold">Approve Voter Registration</h1>
             <div class="flex items-center space-x-4">
 
                 <!-- Profile with dropdown -->
@@ -63,7 +63,7 @@
                         class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
                         <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">View Profile</a>
                         <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Settings</a>
-                        <form action="admin_dashboard.php" method="post">
+                        <form action="admin_dashboard.html" method="post">
                             <button type="submit" name="logout"
                                 class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200">Logout</button>
                         </form>
@@ -75,37 +75,23 @@
 
         <!-- Dashboard Content -->
         <main class="flex-1 p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <!-- Election Details -->
-                <div class="bg-white text-black p-6 rounded-lg shadow">
-                    <h3 class="text-2xl font-bold">1</h3>
-                    <p class="mt-2">Election Details</p>
-                    <a href="#" class="text-black underline mt-4 block">More info</a>
-                </div>
-                <!-- Number of Positions -->
-                <div class="bg-white text-black p-6 rounded-lg shadow">
-                    <h3 class="text-2xl font-bold">2</h3>
-                    <p class="mt-2">No. of Positions</p>
-                    <a href="#" class="text-black underline mt-4 block">More info</a>
-                </div>
-                <!-- Number of Candidates -->
-                <div class="bg-white text-black p-6 rounded-lg shadow">
-                    <h3 class="text-2xl font-bold">3</h3>
-                    <p class="mt-2">No. of Candidates</p>
-                    <a href="#" class="text-white underline mt-4 block">More info</a>
-                </div>
-                <!-- Total Voters -->
-                <div class="bg-white text-black p-6 rounded-lg shadow">
-                    <h3 class="text-2xl font-bold">4</h3>
-                    <p class="mt-2">Total Voters</p>
-                    <a href="#" class="text-black underline mt-4 block">More info</a>
-                </div>
-                <!-- Voters Voted -->
-                <div class="bg-white text-black  p-6 rounded-lg shadow">
-                    <h3 class="text-2xl font-bold">5</h3>
-                    <p class="mt-2">Voters Voted</p>
-                    <a href="#" class="text-black underline mt-4 block">More info</a>
-                </div>
+            <div class="bg-white shadow-lg rounded-lg p-6">
+                <h2 class="text-2xl font-semibold mb-4">Pending Voter Registrations</h2>
+                <table class="min-w-full bg-white rounded-lg shadow">
+                    <thead class="bg-gray-200">
+                        <tr>
+                            <th class="py-2 px-4 text-left">No.</th>
+                            <th class="py-2 px-4 text-left">Voter Name</th>
+                            <th class="py-2 px-4 text-left">Email</th>
+                            <th class="py-2 px-4 text-left">Date of birth</th>
+                            <th class="py-2 px-4 text-left">Address</th>
+
+                            <th class="py-2 px-4 text-left">Registration Date</th>
+                            <th class="py-2 px-4 text-left">Actions</th>
+                        </tr>
+                    </thead>
+                    
+                </table>
             </div>
         </main>
 
