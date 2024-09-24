@@ -5,11 +5,10 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-voting- Voter Dashboard</title>
+    <title>E-voting - Voter Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Additional styling using Tailwind utility classes */
-        /* Custom hover color for sidebar links */
         .hover-custom-blue:hover {
             background-color: #66cc99;
             /* Soft greenish-blue hover color */
@@ -43,7 +42,6 @@
 
     <!-- Main Content -->
     <div class="ml-64 p-8 flex-grow">
-
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold">Voter Dashboard</h1>
             <div class="flex items-center space-x-4">
@@ -70,21 +68,57 @@
             </div>
         </div>
 
-        <!-- Dashboard Content -->
-        <main class="flex-1 p-6">
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-                <!-- Election Details -->
-                <div class="bg-white text-black p-6 rounded-lg shadow">
-                    <h3 class="text-2xl font-bold">1</h3>
-                    <p class="mt-2">Candidate List</p>
-                    <a href="#" class="text-black underline mt-4 block">More info</a>
+        <!-- Candidate Registration Form -->
+        <div class="background-image flex items-center justify-center min-h-screen bg-blue-200 p-8">
+            <div class="bg-white bg-opacity-80 p-6 rounded-lg shadow-lg w-full max-w-md">
+                <!-- Logo -->
+                <div class="text-center mb-6">
+                    <img src="l3.png" alt="Logo" class="h-12 mx-auto">
                 </div>
-               
+                <!-- Title -->
+                <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Candidate Registration</h1>
+
+                <!-- Registration Form -->
+                <form class="space-y-6" enctype="multipart/form-data">
+                    <!-- Post Dropdown Menu -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="post">Post</label>
+                        <select id="post" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Select Post</option>
+                            <option value="President">President</option>
+                            <option value="Vice President">Vice President</option>
+                            <option value="Secretary">Secretary</option>
+                            <option value="Treasurer">Treasurer</option>
+                        </select>
+                    </div>
+
+                    <!-- Image Upload Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="image">Upload Image</label>
+                        <input id="image" type="file" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <!-- Password Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                        <input id="password" type="password" placeholder="Password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="confirm-password">Confirm Password</label>
+                        <input id="confirm-password" type="password" placeholder="Confirm Password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex items-center justify-center">
+                        <button class="bg-blue-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline" type="submit">
+                            Register
+                        </button>
+                    </div>
+                </form>
             </div>
-        </main>
-
-        <!-- Additional content goes here -->
-
+        </div>
     </div>
 
     <!-- Footer -->
@@ -100,13 +134,12 @@
         const profileDropdown = document.getElementById('profileDropdown');
 
         profileBtn.addEventListener('click', () => {
-            profileDropdown.classList.toggle('hidden'); // Toggle the dropdown visibility
+            profileDropdown.classList.toggle('hidden');
         });
 
-        // Close the dropdown if clicked outside
         window.addEventListener('click', (e) => {
             if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-                profileDropdown.classList.add('hidden'); // Hide the dropdown if click outside
+                profileDropdown.classList.add('hidden');
             }
         });
     </script>
