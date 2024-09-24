@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Voter Registration</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .background-image {
+            background-image: url('oip.jpeg');
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-image flex items-center justify-center">
+        <div class="bg-white bg-opacity-80 p-4 rounded-lg shadow-md w-full max-w-xs"> <!-- Changed to max-w-xs and reduced padding -->
+            <div class="text-center mb-4">
+                <img src="l3.png" alt="Logo" class="h-10 mx-auto"> <!-- Logo added here -->
+            </div>
+            <h1 class="text-xl font-bold text-gray-800 mb-4 text-center">Voter Registration</h1> <!-- Reduced font size -->
+            <form class="space-y-4">
+                <!-- Username Field -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-1" for="username">Username</label>
+                    <input class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="username" type="text" placeholder="Username">
+                </div>
+
+                <!-- Email Field -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-1" for="email">Email</label>
+                    <input class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" placeholder="Email">
+                </div>
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-1" for="dob">Date of Birth</label>
+                    <input class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="dob" type="date">
+                </div>
+                <!-- Address Field -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-1" for="address">Address</label>
+                    <input class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="address" type="text" placeholder="Address">
+                </div>
+
+                <!-- Password Field -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-1" for="password">Password</label>
+                    <input class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" placeholder="Password">
+                </div>
+
+                <!-- Confirm Password Field -->
+                <div>
+                    <label class="block text-gray-700 text-sm font-bold mb-1" for="confirm-password">Confirm Password</label>
+                    <input class="shadow appearance-none border rounded w-full py-1 px-2 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="confirm-password" type="password" placeholder="Confirm Password">
+                </div>
+
+                <!-- Submit Button -->
+                <div class="flex items-center justify-between">
+                    <button class="bg-blue-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full" type="submit">
+                        Register
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
