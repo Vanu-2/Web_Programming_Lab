@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-voting - Voter Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Additional styling using Tailwind utility classes */
+        .hover-custom-blue:hover {
+            background-color: #66cc99;
+            /* Soft greenish-blue hover color */
+        }
+    </style>
+</head>
+
+<body class="bg-blue-200 font-sans flex flex-col min-h-screen">
+
+    <!-- Sidebar -->
+    <div class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto">
+        <div class="px-11 py-2 w-full flex justify-center">
+            <img src="l3.png" alt="Logo" class="w-full h-auto w-50 object-contain" />
+            <!-- Adjust logo width -->
+        </div>
+        <ul id="sidebarMenu" class="mt-8">
+            <li class="px-5 py-3 hover:bg-gray-400">
+                <a href="voter_dashboard.html" class="block">Dashboard</a>
+            </li>
+            <li class="px-5 py-3 hover:bg-gray-400">
+                <a href="applyCandidate.html" class="block">Apply for Candidate</a>
+            </li>
+            <li class="px-5 py-3 hover:bg-gray-400">
+                <a href="Vote.html" class="block">Participate Election</a>
+            </li>
+            <li class="px-5 py-3 hover:bg-gray-400">
+                <a href="publish_results.php" class="block">Show result</a>
+            </li>
+        </ul>
+    </div>
+
+    <!-- Main Content -->
+    <div class="ml-64 p-8 flex-grow">
+        <div class="flex justify-between items-center mb-8">
+            <h1 class="text-3xl font-bold">Voter Dashboard</h1>
+            <div class="flex items-center space-x-4">
+
+                <!-- Profile with dropdown -->
+                <div class="relative">
+                    <!-- Profile Picture Button -->
+                    <button id="profileBtn" class="focus:outline-none">
+                        <img src="l2.png" alt="Profile" class="w-10 h-10 rounded-full cursor-pointer">
+                    </button>
+
+                    <!-- Dropdown Menu (Hidden by Default) -->
+                    <div id="profileDropdown"
+                        class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                        <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">View Profile</a>
+                        <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Settings</a>
+                        <form action="admin_dashboard.php" method="post">
+                            <button type="submit" name="logout"
+                                class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200">Logout</button>
+                        </form>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- Candidate Registration Form -->
+        <div class="background-image flex items-center justify-center min-h-screen bg-blue-200 p-8">
+            <div class="bg-white bg-opacity-80 p-6 rounded-lg shadow-lg w-full max-w-md">
+                <!-- Logo -->
+                <div class="text-center mb-6">
+                    <img src="l3.png" alt="Logo" class="h-12 mx-auto">
+                </div>
+                <!-- Title -->
+                <h1 class="text-2xl font-bold text-gray-800 mb-6 text-center">Candidate Registration</h1>
+
+                <!-- Registration Form -->
+                <form class="space-y-6" enctype="multipart/form-data">
+                    <!-- Post Dropdown Menu -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="post">Post</label>
+                        <select id="post" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                            <option value="">Select Post</option>
+                            <option value="President">President</option>
+                            <option value="Vice President">Vice President</option>
+                            <option value="Secretary">Secretary</option>
+                            <option value="Treasurer">Treasurer</option>
+                        </select>
+                    </div>
+
+                    <!-- Image Upload Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="image">Upload Image</label>
+                        <input id="image" type="file" accept="image/*" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <!-- Password Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                        <input id="password" type="password" placeholder="Password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <!-- Confirm Password Field -->
+                    <div>
+                        <label class="block text-gray-700 text-sm font-bold mb-2" for="confirm-password">Confirm Password</label>
+                        <input id="confirm-password" type="password" placeholder="Confirm Password" class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline">
+                    </div>
+
+                    <!-- Submit Button -->
+                    <div class="flex items-center justify-center">
+                        <button class="bg-blue-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded w-full focus:outline-none focus:shadow-outline" type="submit">
+                            Register
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer style="background-color: #42476d;" class="text-white py-4 fixed bottom-0 w-full">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2024 Online Vote. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Script to toggle the profile dropdown on click -->
+    <script>
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+
+        profileBtn.addEventListener('click', () => {
+            profileDropdown.classList.toggle('hidden');
+        });
+
+        window.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden');
+            }
+        });
+    </script>
+
+</body>
+
+</html>

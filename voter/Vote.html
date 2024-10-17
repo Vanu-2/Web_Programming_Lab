@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-voting- Voter Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* Additional styling using Tailwind utility classes */
+        /* Custom hover color for sidebar links */
+        .hover-custom-blue:hover {
+            background-color: #66cc99;
+            /* Soft greenish-blue hover color */
+        }
+    </style>
+</head>
+
+<body class="bg-blue-200 font-sans flex flex-col min-h-screen">
+
+    <!-- Sidebar -->
+    <div class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto">
+        <div class="px-11 py-2 w-full flex justify-center">
+            <img src="l3.png" alt="Logo" class="w-full h-auto w-50 object-contain" />
+            <!-- Adjust logo width -->
+        </div>
+        <ul id="sidebarMenu" class="mt-8">
+            <li class="px-5 py-3 hover:bg-gray-400">
+                <a href="voter_dashboard.html" class="block">Dashboard</a>
+            </li>
+            
+            <li class="px-5 py-3 hover:bg-gray-400">
+                <a href="Vote.html" class="block">Participate Election</a>
+            </li>
+            <li class="px-5 py-3 hover:bg-gray-400">
+                <a href="view_result.html" class="block">View result</a>
+            </li>
+        </ul>
+    </div>
+
+   <!-- Main Content -->
+<main class="flex-1 p-6 ml-64"> <!-- Added 'ml-64' to accommodate sidebar width -->
+    <h1 class="text-3xl font-bold mb-6 text-center">Election Voting</h1> <!-- Added a main heading -->
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
+        <!-- Loop through each post (e.g., President) -->
+        <div class="bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+            <h3 class="text-2xl font-bold mb-4">President</h3> <!-- Post Title -->
+            <p class="font-semibold mb-4">Select your candidate:</p>
+
+            <!-- Candidate List -->
+            <form class="space-y-4">
+                <!-- Candidate 1 -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="symbol1.png"  class="h-10 w-10 mr-3"> <!-- Candidate's Election Symbol -->
+                        <span class="text-lg">Candidate 1</span> <!-- Candidate Name -->
+                    </div>
+                    <input type="radio" name="vote_president" value="candidate1" class="h-4 w-4"> <!-- Voting Box -->
+                </div>
+
+                <!-- Candidate 2 -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="symbol2.png"  class="h-10 w-10 mr-3"> <!-- Candidate's Election Symbol -->
+                        <span class="text-lg">Candidate 2</span> <!-- Candidate Name -->
+                    </div>
+                    <input type="radio" name="vote_president" value="candidate2" class="h-4 w-4"> <!-- Voting Box -->
+                </div>
+
+                <!-- Candidate 3 -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="symbol3.png"  class="h-10 w-10 mr-3"> <!-- Candidate's Election Symbol -->
+                        <span class="text-lg">Candidate 3</span> <!-- Candidate Name -->
+                    </div>
+                    <input type="radio" name="vote_president" value="candidate3" class="h-4 w-4"> <!-- Voting Box -->
+                </div>
+            </form>
+        </div>
+
+        <!-- Another Post (e.g., Vice President) -->
+        <div class="bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+            <h3 class="text-2xl font-bold mb-4">Vice President</h3> <!-- Post Title -->
+            <p class="font-semibold mb-4">Select your candidate:</p>
+
+            <!-- Candidate List -->
+            <form class="space-y-4">
+                <!-- Candidate 1 -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="symbol4.png" class="h-10 w-10 mr-3"> <!-- Candidate's Election Symbol -->
+                        <span class="text-lg">Candidate 1</span> <!-- Candidate Name -->
+                    </div>
+                    <input type="radio" name="vote_vp" value="candidate1" class="h-4 w-4"> <!-- Voting Box -->
+                </div>
+
+                <!-- Candidate 2 -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="symbol5.png"  class="h-10 w-10 mr-3"> <!-- Candidate's Election Symbol -->
+                        <span class="text-lg">Candidate 2</span> <!-- Candidate Name -->
+                    </div>
+                    <input type="radio" name="vote_vp" value="candidate2" class="h-4 w-4"> <!-- Voting Box -->
+                </div>
+
+                <!-- Candidate 3 -->
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <img src="symbol6.png"  class="h-10 w-10 mr-3"> <!-- Candidate's Election Symbol -->
+                        <span class="text-lg">Candidate 3</span> <!-- Candidate Name -->
+                    </div>
+                    <input type="radio" name="vote_vp" value="candidate3" class="h-4 w-4"> <!-- Voting Box -->
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Submit Vote Button -->
+    <div class="flex justify-center mt-6">
+        <button class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out">
+            Submit Vote
+        </button>
+    </div>
+</main>
+
+    
+
+       
+
+        <!-- Additional content goes here -->
+
+    </div>
+
+    <!-- Footer -->
+    <footer style="background-color: #42476d;" class="text-white py-4 fixed bottom-0 w-full">
+        <div class="container mx-auto text-center">
+            <p>&copy; 2024 Online Vote. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Script to toggle the profile dropdown on click -->
+    <script>
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
+
+        profileBtn.addEventListener('click', () => {
+            profileDropdown.classList.toggle('hidden'); // Toggle the dropdown visibility
+        });
+
+        // Close the dropdown if clicked outside
+        window.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden'); // Hide the dropdown if click outside
+            }
+        });
+    </script>
+
+</body>
+
+</html>
