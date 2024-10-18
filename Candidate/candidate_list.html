@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Candidate List</title>
+    <link
+      href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #69abd7; /* Light gray background color */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mx-auto p-6">
+      <h1 class="text-4xl font-bold text-center my-6 text-gray-800">
+        Candidate List
+      </h1>
+      <ul id="candidate-list" class="space-y-4"></ul>
+    </div>
+
+    <script>
+      // Fetch the candidate data and display it
+      fetch("/candidate")
+        .then((response) => response.json())
+        .then((data) => {
+          const candidateList = document.getElementById("candidate-list");
+
+          // Loop through the candidates and display their name and email
+          data.forEach((candidate) => {
+            const listItem = document.createElement("li");
+            listItem.classList.add(
+              "bg-white",
+              "p-4",
+              "rounded-lg",
+              "shadow",
+              "hover:shadow-lg", // Add hover effect
+              "transition",
+              "duration-300" // Smooth transition for shadow effect
+            );
+
+            // Display candidate's name and email
+            listItem.innerHTML = `<strong class="text-gray-700">Name:</strong> ${candidate.candidateName}<br>
+                                  <strong class="text-gray-700">Email:</strong> ${candidate.email}<br>
+                                  <strong class="text-gray-700">Position:</strong> ${candidate.position}`;
+
+            candidateList.appendChild(listItem);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching candidate data:", error);
+        });
+    </script>
+  </body>
+</html>
