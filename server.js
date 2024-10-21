@@ -188,6 +188,48 @@ app.get("/api/candidates", (req, res) => {
   });
 });
 
+// Assuming Express.js for Node
+// Endpoint to fetch total candidate count
+app.get('/api/candidateCount', (req, res) => {
+  const query = "SELECT COUNT(*) AS count FROM candidate";
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidate count:", err);
+      res.status(500).send("Server error");
+      return;
+    }
+
+    // Send the count as a JSON response
+    res.json({ count: results[0].count });
+  });
+
+});
+// Assuming Express.js for Node
+app.get('/api/voterCount', (req, res) => {
+  const query = 'SELECT COUNT(*) as count FROM voter'; // Adjust according to your table structure
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching voter count:", err);
+      return res.status(500).send("Server error");
+    }
+    res.json({ count: results[0].count }); // Send the count as JSON response
+  });
+});
+
+// Show voter list
+app.get("/voter", (req, res) => {
+  const query = "SELECT username, email, dateOfBirth, address FROM voter"; // Adjust according to your table structure
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching voter data:", err);
+      return res.status(500).send("Server error");
+    }
+    res.json(results); // Send the fetched data as JSON response
+  });
+});
+
+
 // Start the server
 app.listen(port, () => {
   console.log(`Server running at http://localhost:${port}`);

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Voter List</title>
+    <link
+      href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
+      rel="stylesheet"
+    />
+    <style>
+      body {
+        background-color: #69abd7; /* Light gray background color */
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container mx-auto p-6">
+      <h1 class="text-4xl font-bold text-center my-6 text-gray-800">
+        Voter List
+      </h1>
+      <ul id="voter-list" class="space-y-4"></ul>
+    </div>
+
+    <script>
+      // Fetch the voter data and display it
+      fetch("/voter") // Adjust this endpoint to match your server's setup
+        .then((response) => response.json())
+        .then((data) => {
+          const voterList = document.getElementById("voter-list");
+
+          // Loop through the voters and display their details
+          data.forEach((voter) => {
+            const listItem = document.createElement("li");
+            listItem.classList.add(
+              "bg-white",
+              "p-4",
+              "rounded-lg",
+              "shadow",
+              "hover:shadow-lg", // Add hover effect
+              "transition",
+              "duration-300" // Smooth transition for shadow effect
+            );
+
+            // Display voter's name and email
+            listItem.innerHTML = `<strong class="text-gray-700">Name:</strong> ${voter.username}<br>
+                                  <strong class="text-gray-700">Email:</strong> ${voter.email}<br>
+                                  <strong class="text-gray-700">Date of Birth:</strong> ${voter.dateOfBirth}<br>
+                                  <strong class="text-gray-700">Address:</strong> ${voter.address}`;
+
+            voterList.appendChild(listItem);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching voter data:", error);
+        });
+    </script>
+  </body>
+</html>
