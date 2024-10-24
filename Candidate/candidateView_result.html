@@ -42,7 +42,7 @@
     <!-- Main Content -->
     <div class="ml-64 p-8 flex-grow">
       <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold">Candidate Dashboard</h1>
+        <h1 class="text-3xl font-bold">View Result</h1>
         <div class="flex items-center space-x-4">
           <!-- Profile with dropdown -->
           <div class="relative">
@@ -83,35 +83,37 @@
           </div>
         </div>
       </div>
+
       <main class="flex-1 p-6">
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-         
-<!-- Number of Candidates section -->
-<div class="bg-white text-black p-6 rounded-lg shadow">
-  <p class="mt-2">
-    <h1 style="font-size: 20px;">Number of candidates:</h1>
-    <span id="candidateCount"><h1 class="text-2xl font-bold"></h1></span>
-  </p>
-  <a href="/Candidate/candidate_list.html" class="text-black underline mt-4 block">More info</a>
-</div>
+        <!-- The grid layout can remain without the candidate and voter sections -->
 
-<!-- Voter section -->
-<div class="bg-white text-black p-6 rounded-lg shadow">
-  <p class="mt-2">
-    <h1 style="font-size: 20px;">Number of voters:</h1>
-    <span id="voterCount"><h1 class="text-2xl font-bold"></h1></span>
-  </p>
-  <a href="/Candidate/voter_list.html" class="text-black underline mt-4 block">More info</a>
-</div>
+        <!-- Election Results Section -->
+        <div class="bg-white shadow-lg rounded-lg p-6 mb-8">
+          <h2 class="text-2xl font-semibold mb-4">Election Results</h2>
+          <table class="min-w-full bg-white rounded-lg shadow">
+            <thead class="bg-gray-200">
+              <tr>
+                <th class="py-3 px-4 text-left">Post</th>
+                <th class="py-3 px-4 text-left">Candidate Name</th>
+                <th class="py-3 px-4 text-left">Symbol</th>
+                <th class="py-3 px-4 text-left">Number of Votes</th>
+              </tr>
+            </thead>
+          </table>
+        </div>
 
-<!-- Include the external JavaScript file -->
-<script src="dashboard.js"></script>
-
-          <!-- Total Voters -->
-         
-
-
-      <!-- Additional content goes here -->
+        <!-- Winner Section -->
+        <div class="bg-green-100 p-6 shadow-lg rounded-lg text-center h-30">
+            <h3 class="text-2xl font-bold text-green-600 mb-4">🏆 Winner: </h3>
+            <p class="text-lg">Total Votes: </p>
+            <p class="text-lg">Symbol: </p>
+            <div class="mt-4">
+              <img src="winner_sticker.png" alt="Winner Badge" class="w-32 h-32 mx-auto">
+            </div>
+          </div>
+          
+          
+      </main>
     </div>
 
     <!-- Footer -->
@@ -135,13 +137,13 @@
 
       // Close the dropdown if clicked outside
       window.addEventListener("click", (e) => {
-        if (
-          !profileBtn.contains(e.target) &&
-          !profileDropdown.contains(e.target)
-        ) {
-          profileDropdown.classList.add("hidden"); // Hide the dropdown if click outside
+        if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+          profileDropdown.classList.add("hidden"); // Hide the dropdown if clicked outside
         }
       });
     </script>
+
+    <!-- Include the external JavaScript file -->
+    <script src="dashboard.js"></script>
   </body>
 </html>
