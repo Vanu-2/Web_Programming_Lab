@@ -65,7 +65,7 @@ app.post("/registration_form", (req, res) => {
     }
   );
 });
-
+//Start login page backend
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -74,8 +74,7 @@ app.post("/login", (req, res) => {
   db.query(voterQuery, [email, password], (err, voterResults) => {
     if (err) {
       console.error("Error querying the database for voter:", err);
-      res.status(500).send("Server error");
-      return;
+      return res.status(500).send("Server error");
     }
 
     if (voterResults.length > 0) {
@@ -84,13 +83,11 @@ app.post("/login", (req, res) => {
     }
 
     // Check if user is a candidate
-    const candidateQuery =
-      "SELECT * FROM candidate WHERE email = ? AND password = ?";
+    const candidateQuery = "SELECT * FROM candidate WHERE email = ? AND password = ?";
     db.query(candidateQuery, [email, password], (err, candidateResults) => {
       if (err) {
         console.error("Error querying the database for candidate:", err);
-        res.status(500).send("Server error");
-        return;
+        return res.status(500).send("Server error");
       }
 
       if (candidateResults.length > 0) {
@@ -103,8 +100,7 @@ app.post("/login", (req, res) => {
       db.query(adminQuery, [email, password], (err, adminResults) => {
         if (err) {
           console.error("Error querying the database for admin:", err);
-          res.status(500).send("Server error");
-          return;
+          return res.status(500).send("Server error");
         }
 
         if (adminResults.length > 0) {
@@ -113,15 +109,12 @@ app.post("/login", (req, res) => {
         }
 
         // If no match found, user is not found in any table
-        res
-          .status(401)
-          .send(
-            'Invalid username or password. Try again or <a href="signup.html">Sign Up</a>.'
-          );
+        res.redirect("/login.html?error=invalid");
       });
     });
   });
 });
+//end of login page backend
 
 // Endpoint to handle file uploads
 // Serve static files from the admin folder
