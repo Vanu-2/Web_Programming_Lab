@@ -10,6 +10,7 @@ const modifyVoterInfo = require("./voter_information");
 const app = express();
 const port = 3000;
 
+app.use(bodyParser.json());
 // Middleware for parsing form data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname)); // Serve static files from the current directory
@@ -43,6 +44,11 @@ db.connect((err) => {
   console.log("Connected to MySQL Database");
 });
 
+
+const electionRoutes = require("./admin/election_launch")(db);
+app.use("/admin", electionRoutes);
+
+
 // Handle signup form submission
 app.post("/registration_form", (req, res) => {
   const { username, email, dateOfBirth, address, password } = req.body;
@@ -65,7 +71,8 @@ app.post("/registration_form", (req, res) => {
     }
   );
 });
-//Start login page backend
+
+// Start login page backend
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -114,27 +121,13 @@ app.post("/login", (req, res) => {
     });
   });
 });
-//end of login page backend
+// End of login page backend
 
 // Endpoint to handle file uploads
 // Serve static files from the admin folder
 app.use(express.static(__dirname + "/admin"));
 
 // Fetch candidate name and email from the database
-app.get("/candidate", (req, res) => {
-  const query = "SELECT candidateName, email,position FROM candidate"; // Fetch only name and email
-
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching candidate data:", err);
-      res.status(500).send("Server error");
-      return;
-    }
-
-    // Send the candidate data as JSON
-    res.json(results);
-  });
-});
 
 // Endpoint to handle vote submission
 app.post("/submitVote", (req, res) => {
@@ -168,8 +161,8 @@ app.post("/submitVote", (req, res) => {
 
 modifyVoterInfo(app);
 
-//fetch the candidate name position from database
-app.get("/api/candidates", (req, res) => {
+// Fetch the candidate name and position from database
+app.get("/api/candidate", (req, res) => {
   const query = "SELECT candidateName, position, symbol FROM candidate";
   db.query(query, (err, results) => {
     if (err) {
@@ -181,7 +174,6 @@ app.get("/api/candidates", (req, res) => {
   });
 });
 
-// Assuming Express.js for Node
 // Endpoint to fetch total candidate count
 app.get('/api/candidateCount', (req, res) => {
   const query = "SELECT COUNT(*) AS count FROM candidate";
@@ -196,11 +188,11 @@ app.get('/api/candidateCount', (req, res) => {
     // Send the count as a JSON response
     res.json({ count: results[0].count });
   });
-
 });
-// Assuming Express.js for Node
+
+// Endpoint to fetch total voter count
 app.get('/api/voterCount', (req, res) => {
-  const query = 'SELECT COUNT(*) as count FROM voter'; // Adjust according to your table structure
+  const query = 'SELECT COUNT(*) as count FROM voter';
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching voter count:", err);
@@ -212,7 +204,7 @@ app.get('/api/voterCount', (req, res) => {
 
 // Show voter list
 app.get("/voter", (req, res) => {
-  const query = "SELECT username, email, dateOfBirth, address FROM voter"; // Adjust according to your table structure
+  const query = "SELECT username, email, dateOfBirth, address FROM voter"; 
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching voter data:", err);
@@ -221,7 +213,6 @@ app.get("/voter", (req, res) => {
     res.json(results); // Send the fetched data as JSON response
   });
 });
-
 
 // Start the server
 app.listen(port, () => {
