@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Oct 21, 2024 at 05:43 PM
+-- Generation Time: Oct 25, 2024 at 11:48 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.0.30
 
@@ -47,23 +47,61 @@ INSERT INTO `admin` (`username`, `email`, `password`) VALUES
 --
 
 CREATE TABLE `candidate` (
-  `candidateName` varchar(50) NOT NULL,
-  `email` varchar(30) NOT NULL,
-  `password` varchar(30) NOT NULL,
-  `votes` int(11) DEFAULT 0,
-  `position` varchar(100) DEFAULT NULL,
-  `symbol` varchar(255) DEFAULT NULL
+  `id` int(11) NOT NULL,
+  `candidateName` varchar(255) NOT NULL,
+  `email` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `symbol` varchar(255) NOT NULL,
+  `electionId` int(11) NOT NULL,
+  `designationId` int(11) NOT NULL,
+  `votes` int(11) DEFAULT 0
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `designations`
+--
+
+CREATE TABLE `designations` (
+  `id` int(11) NOT NULL,
+  `designationName` varchar(255) NOT NULL,
+  `electionId` int(11) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
--- Dumping data for table `candidate`
+-- Dumping data for table `designations`
 --
 
-INSERT INTO `candidate` (`candidateName`, `email`, `password`, `votes`, `position`, `symbol`) VALUES
-('Amber', 'amber@gmail.com', 'amber1', 0, 'President', NULL),
-('Jonathon', 'jonathon@gmail.com', '123', 0, 'President', NULL),
-('Scott', 'scott@gmail.com', '123', 0, 'Vice President', NULL),
-('symon', 'symon@gmail.com', '123', 0, 'Vice President', NULL);
+INSERT INTO `designations` (`id`, `designationName`, `electionId`) VALUES
+(1, 'ClassRepresentative', 1),
+(2, 'AssitantClassRepresentative', 1),
+(3, 'Chairman', 2),
+(4, 'Union Member', 2),
+(8, 'President', 4),
+(9, 'Vice President 1', 4),
+(10, 'Vice President 2', 4);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `elections`
+--
+
+CREATE TABLE `elections` (
+  `id` int(11) NOT NULL,
+  `electionName` varchar(255) NOT NULL,
+  `electionDate` date NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `elections`
+--
+
+INSERT INTO `elections` (`id`, `electionName`, `electionDate`) VALUES
+(1, 'ClassroomElection', '2024-10-31'),
+(2, 'Upazilla Election', '2024-10-31'),
+(4, 'National Election', '2024-10-31');
 
 -- --------------------------------------------------------
 
@@ -84,9 +122,13 @@ CREATE TABLE `voter` (
 --
 
 INSERT INTO `voter` (`username`, `email`, `dateOfBirth`, `address`, `password`) VALUES
+('abid', 'abid@gmail.com', '2024-10-10', 'khulna', '123'),
 ('Alice', 'alice@gmail.com', '2024-10-17', 'sydni', '123'),
+('Anamul', 'anamul@gmail.com', '2001-10-11', 'meherpur', '123'),
+('johndoe', 'john@example.com', '2010-01-12', '123 Main St', 'password123'),
 ('nick', 'nick@gmail.com', '2024-10-17', 'fury', '123'),
 ('Raz', 'raz@gmail.com', '2004-10-20', 'boyra,khulna', '123'),
+('Red', 'red@gmail.com', '2004-10-14', 'boyra,khulna', '123'),
 ('rythm', 'rythm@gmail.com', '2003-10-01', 'puki road', '123');
 
 --
@@ -103,13 +145,68 @@ ALTER TABLE `admin`
 -- Indexes for table `candidate`
 --
 ALTER TABLE `candidate`
-  ADD PRIMARY KEY (`email`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD KEY `electionId` (`electionId`),
+  ADD KEY `designationId` (`designationId`);
+
+--
+-- Indexes for table `designations`
+--
+ALTER TABLE `designations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `election_id` (`electionId`);
+
+--
+-- Indexes for table `elections`
+--
+ALTER TABLE `elections`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `voter`
 --
 ALTER TABLE `voter`
   ADD PRIMARY KEY (`email`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `candidate`
+--
+ALTER TABLE `candidate`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `designations`
+--
+ALTER TABLE `designations`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
+
+--
+-- AUTO_INCREMENT for table `elections`
+--
+ALTER TABLE `elections`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `candidate`
+--
+ALTER TABLE `candidate`
+  ADD CONSTRAINT `candidate_ibfk_1` FOREIGN KEY (`electionId`) REFERENCES `elections` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `candidate_ibfk_2` FOREIGN KEY (`designationId`) REFERENCES `designations` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `designations`
+--
+ALTER TABLE `designations`
+  ADD CONSTRAINT `designations_ibfk_1` FOREIGN KEY (`electionId`) REFERENCES `elections` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
