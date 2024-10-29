@@ -10,7 +10,6 @@ const modifyVoterInfo = require("./voter_information");
 const app = express();
 const port = 3000;
 
-app.use(bodyParser.json());
 // Middleware for parsing form data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname)); // Serve static files from the current directory
@@ -44,11 +43,6 @@ db.connect((err) => {
   console.log("Connected to MySQL Database");
 });
 
-
-const electionRoutes = require("./admin/election_launch")(db);
-app.use("/admin", electionRoutes);
-
-
 // Handle signup form submission
 app.post("/registration_form", (req, res) => {
   const { username, email, dateOfBirth, address, password } = req.body;
@@ -72,7 +66,6 @@ app.post("/registration_form", (req, res) => {
   );
 });
 
-// Start login page backend
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
@@ -81,7 +74,8 @@ app.post("/login", (req, res) => {
   db.query(voterQuery, [email, password], (err, voterResults) => {
     if (err) {
       console.error("Error querying the database for voter:", err);
-      return res.status(500).send("Server error");
+      res.status(500).send("Server error");
+      return;
     }
 
     if (voterResults.length > 0) {
@@ -90,11 +84,13 @@ app.post("/login", (req, res) => {
     }
 
     // Check if user is a candidate
-    const candidateQuery = "SELECT * FROM candidate WHERE email = ? AND password = ?";
+    const candidateQuery =
+      "SELECT * FROM candidate WHERE email = ? AND password = ?";
     db.query(candidateQuery, [email, password], (err, candidateResults) => {
       if (err) {
         console.error("Error querying the database for candidate:", err);
-        return res.status(500).send("Server error");
+        res.status(500).send("Server error");
+        return;
       }
 
       if (candidateResults.length > 0) {
@@ -107,7 +103,8 @@ app.post("/login", (req, res) => {
       db.query(adminQuery, [email, password], (err, adminResults) => {
         if (err) {
           console.error("Error querying the database for admin:", err);
-          return res.status(500).send("Server error");
+          res.status(500).send("Server error");
+          return;
         }
 
         if (adminResults.length > 0) {
@@ -116,18 +113,35 @@ app.post("/login", (req, res) => {
         }
 
         // If no match found, user is not found in any table
-        res.redirect("/login.html?error=invalid");
+        res
+          .status(401)
+          .send(
+            'Invalid username or password. Try again or <a href="signup.html">Sign Up</a>.'
+          );
       });
     });
   });
 });
-// End of login page backend
 
 // Endpoint to handle file uploads
 // Serve static files from the admin folder
 app.use(express.static(__dirname + "/admin"));
 
 // Fetch candidate name and email from the database
+app.get("/candidate", (req, res) => {
+  const query = "SELECT candidateName, email,designationld FROM candidate"; // Fetch only name and email
+
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidate data:", err);
+      res.status(500).send("Server error");
+      return;
+    }
+
+    // Send the candidate data as JSON
+    res.json(results);
+  });
+});
 
 // Endpoint to handle vote submission
 app.post("/submitVote", (req, res) => {
@@ -159,11 +173,25 @@ app.post("/submitVote", (req, res) => {
   });
 });
 
+app.get("/admin", (req, res) => {
+  const sql = "SELECT candidateName, email, designationld FROM candidate";
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidates:", err);
+      res.status(500).json({ error: "Failed to retrieve candidates" });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+
 modifyVoterInfo(app);
 
-// Fetch the candidate name and position from database
+//fetch the candidate name position from database
 app.get("/api/candidate", (req, res) => {
-  const query = "SELECT candidateName, position, symbol FROM candidate";
+  const query = "SELECT candidateName, designationid, symbol FROM candidate";
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching candidate data:", err);
@@ -174,6 +202,7 @@ app.get("/api/candidate", (req, res) => {
   });
 });
 
+// Assuming Express.js for Node
 // Endpoint to fetch total candidate count
 app.get('/api/candidateCount', (req, res) => {
   const query = "SELECT COUNT(*) AS count FROM candidate";
@@ -188,11 +217,11 @@ app.get('/api/candidateCount', (req, res) => {
     // Send the count as a JSON response
     res.json({ count: results[0].count });
   });
-});
 
-// Endpoint to fetch total voter count
+});
+// Assuming Express.js for Node
 app.get('/api/voterCount', (req, res) => {
-  const query = 'SELECT COUNT(*) as count FROM voter';
+  const query = 'SELECT COUNT(*) as count FROM voter'; // Adjust according to your table structure
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching voter count:", err);
@@ -204,15 +233,43 @@ app.get('/api/voterCount', (req, res) => {
 
 // Show voter list
 app.get("/voter", (req, res) => {
-  const query = "SELECT username, email, dateOfBirth, address FROM voter"; 
+  const query = "SELECT username, email, address FROM voter";
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching voter data:", err);
       return res.status(500).send("Server error");
     }
-    res.json(results); // Send the fetched data as JSON response
+    res.json(results);
   });
 });
+
+app.get("/candidate", (req, res) => {
+  const sql = "SELECT candidateName, email, designationld FROM candidate";
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidates:", err);
+      res.status(500).json({ error: "Failed to retrieve candidate" });
+      return;
+    }
+    res.json(results);
+  });
+
+});
+
+app.get("/admin", (req, res) => {
+  const sql = "SELECT candidateName, email, designationld FROM candidate";
+
+  db.query(sql, (err, results) => {
+    if (err) {
+      console.error("Error fetching candidates:", err);
+      res.status(500).json({ error: "Failed to retrieve candidates" });
+      return;
+    }
+    res.json(results);
+  });
+});
+
 
 // Start the server
 app.listen(port, () => {
