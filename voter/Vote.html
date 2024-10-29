@@ -1,125 +1,184 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
+<head>
     <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>E-voting - Voter Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <title>Vote for Candidates</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
     <style>
-      /* Additional styling using Tailwind utility classes */
-      .hover-custom-blue:hover {
-        background-color: #66cc99;
-      }
+        .checkmark {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: none;
+        }
+
+        input[type="checkbox"] {
+            display: none; /* Hide the default checkbox */
+        }
+
+        input[type="checkbox"]:checked + label .checkmark {
+            display: block; /* Show the checkmark when checked */
+        }
+
+        .custom-checkbox {
+            width: 20px; /* Width of the checkbox */
+            height: 20px; /* Height of the checkbox */
+            border: 2px solid #cccccc; /* Border color */
+            border-radius: 4px; /* Rounded corners */
+            display: flex; /* Flexbox for centering */
+            align-items: center; /* Center vertically */
+            justify-content: center; /* Center horizontally */
+            margin-right: 10px; /* Space between checkbox and candidate name */
+            position: relative; /* Position for absolute checkmark */
+            cursor: pointer; /* Pointer cursor */
+        }
+
+        .custom-checkbox:hover {
+            border-color: #a1a1a1; /* Change border color on hover */
+        }
+
+        .checkmark {
+            background-color: #4caf50; /* Green background for the checkmark */
+            color: white; /* White color for the checkmark */
+            font-size: 16px; /* Font size for the checkmark */
+            line-height: 16px; /* Center the checkmark vertically */
+            display: none; /* Initially hidden */
+        }
     </style>
-  </head>
+</head>
 
-  <body class="bg-blue-200 font-sans flex flex-col min-h-screen">
-    <!-- Sidebar -->
-    <div
-      class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto"
-    >
-      <div class="px-11 py-2 w-full flex justify-center">
-        <img
-          src="l3.png"
-          alt="Logo"
-          class="w-full h-auto w-50 object-contain"
-        />
-      </div>
-      <ul id="sidebarMenu" class="mt-8">
-        <li class="px-5 py-3 hover:bg-gray-400">
-          <a href="voter_dashboard.html" class="block">Dashboard</a>
-        </li>
-        <li class="px-5 py-3 hover:bg-gray-400">
-          <a href="Vote.html" class="block">Participate Election</a>
-        </li>
-        <li class="px-5 py-3 hover:bg-gray-400">
-          <a href="view_result.html" class="block">View result</a>
-        </li>
-      </ul>
-    </div>
-
-    <!-- Main Content -->
+<body class="bg-blue-200 font-sans flex flex-col min-h-screen">
     <main class="flex-1 p-6 ml-64">
-      <h1 class="text-3xl font-bold mb-6 text-center">Election Voting</h1>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
-        <!-- President Voting Section -->
-        <div
-          class="bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
-          <h3 class="text-2xl font-bold mb-4">President</h3>
-          <p class="font-semibold mb-4">Select your candidate:</p>
-          <form id="presidentCandidates" class="space-y-4"></form>
+        <!-- Election Selection -->
+        <div class="flex justify-center mb-6">
+            <select id="electionSelect" class="bg-white border border-gray-300 text-black p-2 rounded-lg shadow-lg">
+                <option value="">Select an Election</option>
+                <!-- Options will be populated dynamically -->
+            </select>
         </div>
 
-        <!-- Vice President Voting Section -->
-        <div
-          class="bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
-          <h3 class="text-2xl font-bold mb-4">Vice President</h3>
-          <p class="font-semibold mb-4">Select your candidate:</p>
-          <form id="vicePresidentCandidates" class="space-y-4"></form>
-        </div>
-      </div>
+        <!-- Election Name -->
+        <h1 id="electionName" class="text-3xl font-bold mb-6 text-center"></h1>
 
-      <!-- Submit Vote Button -->
-      <div class="flex justify-center mt-6">
-        <button
-          id="submitVoteBtn"
-          class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
-          Submit Vote
-        </button>
-      </div>
+        <!-- Designation sections for candidates -->
+        <div id="designationSections" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6"></div>
+
+        <!-- Submit Vote Button -->
+        <div class="flex justify-center mt-6">
+            <button
+                id="submitVoteBtn"
+                class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
+            >
+                Submit Vote
+            </button>
+        </div>
     </main>
 
-    <!-- Footer -->
-    <footer
-      style="background-color: #42476d"
-      class="text-white py-4 fixed bottom-0 w-full"
-    >
-      <div class="container mx-auto text-center">
-        <p>&copy; 2024 Online Vote. All rights reserved.</p>
-      </div>
-    </footer>
-
     <script>
-      // Fetch candidates from the server and populate the forms
-      fetch("/api/candidates")
-        .then((response) => response.json())
-        .then((data) => {
-          // Filter candidates based on their position
-          const presidentCandidates = data.filter(
-            (candidate) => candidate.position === "President"
-          );
-          const vpCandidates = data.filter(
-            (candidate) => candidate.position === "Vice President"
-          );
+        // Fetch all elections to populate the dropdown
+        fetch("/api/elections")
+            .then((response) => response.json())
+            .then((data) => {
+                const electionSelect = document.getElementById("electionSelect");
+                data.forEach((election) => {
+                    const option = document.createElement("option");
+                    option.value = election.electionId; // Ensure this corresponds to your database
+                    option.textContent = election.electionName; // Assuming your API returns this
+                    electionSelect.appendChild(option);
+                });
+            })
+            .catch((error) => console.error("Error fetching elections:", error));
 
-          // Populate the President candidates
-          const presidentForm = document.getElementById("presidentCandidates");
-          presidentCandidates.forEach((candidate) => {
-            presidentForm.innerHTML += `
-            <div>
-              <img src="${candidate.symbol}" alt="Symbol" style="height: 50px;">
-              <span>${candidate.candidateName}</span>
-              <input type="radio" name="vote_president" value="${candidate.candidateName}">
-            </div>`;
-          });
+        // Fetch election details when an election is selected
+        document.getElementById("electionSelect").addEventListener("change", (event) => {
+            const selectedElectionId = event.target.value;
+            if (selectedElectionId) {
+                fetch(`/api/election_details?electionId=${selectedElectionId}`)
+                    .then((response) => response.json())
+                    .then((data) => {
+                        document.getElementById("electionName").innerText = data.electionName;
+                        const designationSections = document.getElementById("designationSections");
+                        designationSections.innerHTML = ""; // Clear previous candidates
 
-          // Populate the Vice President candidates
-          const vpForm = document.getElementById("vicePresidentCandidates");
-          vpCandidates.forEach((candidate) => {
-            vpForm.innerHTML += `
-            <div>
-              <img src="${candidate.symbol}" alt="Symbol" style="height: 50px;">
-              <span>${candidate.candidateName}</span>
-              <input type="radio" name="vote_vp" value="${candidate.candidateName}">
-            </div>`;
-          });
-        })
-        .catch((error) => console.error("Error fetching candidates:", error));
+                        // Populate each designation with its candidates
+                        data.designations.forEach((designation) => {
+                            const designationSection = document.createElement("div");
+                            designationSection.className = "bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out mb-4";
+
+                            designationSection.innerHTML = `
+                                <h3 class="text-2xl font-bold mb-4">${designation.designationName}</h3>
+                                <p class="font-semibold mb-4">Select your candidate:</p>
+                            `;
+
+                            // Add each candidate under the designation
+                            designation.candidate.forEach((candidate) => {
+                                designationSection.innerHTML += `
+                                    <div class="mb-2 flex items-center cursor-pointer">
+                                        <input type="checkbox" id="vote_${candidate.candidateName}" name="vote_${designation.designationName}" value="${candidate.candidateName}">
+                                        <label for="vote_${candidate.candidateName}" class="custom-checkbox">
+                                            <span class="checkmark">✔</span>
+                                        </label>
+                                        <img src="${candidate.symbol}" alt="Symbol" style="height: 50px; margin-right: 10px;">
+                                        <span>${candidate.candidateName}</span>
+                                    </div>
+                                `;
+                            });
+
+                            // Append the designation section to the main container
+                            designationSections.appendChild(designationSection);
+                        });
+
+                        // Add event listener to checkboxes to show/hide checkmark
+                        document.querySelectorAll('input[type="checkbox"]').forEach((checkbox) => {
+                            checkbox.addEventListener('change', function() {
+                                const checkmark = this.nextElementSibling.querySelector('.checkmark');
+                                if (this.checked) {
+                                    checkmark.style.display = "block";
+                                } else {
+                                    checkmark.style.display = "none";
+                                }
+                            });
+                        });
+                    })
+                    .catch((error) => console.error("Error fetching election details:", error));
+            } else {
+                // Clear the election name and designation sections if no election is selected
+                document.getElementById("electionName").innerText = "";
+                document.getElementById("designationSections").innerHTML = "";
+            }
+        });
+
+        // Submit Vote Button functionality
+        document.getElementById("submitVoteBtn").addEventListener("click", () => {
+            const selections = {};
+
+            // Collect the selected candidates
+            document.querySelectorAll('input[type="checkbox"]:checked').forEach((checkbox) => {
+                const position = checkbox.name.replace("vote_", ""); // Extract position
+                if (!selections[position]) {
+                    selections[position] = []; // Initialize if not present
+                }
+                selections[position].push(checkbox.value); // Store selected candidate
+            });
+
+            fetch("/submitVote", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(selections),
+            })
+            .then((response) => response.json())
+            .then((data) => {
+                if (data.success) {
+                    alert("Vote submitted successfully!");
+                } else {
+                    alert("Failed to submit vote: " + data.message);
+                }
+            })
+            .catch((error) => console.error("Error submitting vote:", error));
+        });
     </script>
-  </body>
+</body>
 </html>

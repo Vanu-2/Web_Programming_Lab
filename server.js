@@ -131,48 +131,136 @@ app.use(express.static(__dirname + "/admin"));
 
 // Endpoint to handle vote submission
 app.post("/submitVote", (req, res) => {
-  const { president, vicePresident } = req.body;
+  const selections = req.body; // Expects { "DesignationName": "CandidateName", ... }
 
-  // Update vote count for president
-  const updatePresidentQuery =
-    "UPDATE candidate SET votes = votes + 1 WHERE candidateName = ?";
-  db.query(updatePresidentQuery, [president], (err, result) => {
+  // Start transaction
+  db.beginTransaction((err) => {
     if (err) {
-      console.error("Error updating president vote count:", err);
+      console.error("Error starting transaction:", err);
       return res.status(500).json({ success: false, message: "Server error" });
     }
 
-    // Update vote count for vice president
-    const updateVicePresidentQuery =
-      "UPDATE candidate SET votes = votes + 1 WHERE candidateName = ?";
-    db.query(updateVicePresidentQuery, [vicePresident], (err, result) => {
-      if (err) {
-        console.error("Error updating vice president vote count:", err);
-        return res
-          .status(500)
-          .json({ success: false, message: "Server error" });
-      }
+    const updatePromises = Object.entries(selections).map(([designation, candidateName]) => {
+      const updateVoteQuery = `
+        UPDATE candidate 
+        SET votes = votes + 1 
+        WHERE candidateName = ? 
+          AND designationId = (SELECT designationId FROM designations WHERE designationName = ?)
+      `;
 
-      // If both updates succeed, send success response
-      res.json({ success: true, message: "Vote submitted successfully!" });
+      return new Promise((resolve, reject) => {
+        db.query(updateVoteQuery, [candidateName, designation], (err, result) => {
+          if (err) {
+            console.error(`Error updating vote count for ${designation}:`, err);
+            return reject(err);
+          }
+          if (result.affectedRows === 0) {
+            return reject(new Error(`No candidate found for ${designation}`));
+          }
+          resolve(result);
+        });
+      });
     });
+
+    // Execute all promises in the transaction
+    Promise.all(updatePromises)
+      .then(() => {
+        db.commit((err) => {
+          if (err) {
+            console.error("Error committing transaction:", err);
+            return db.rollback(() => res.status(500).json({ success: false, message: "Server error" }));
+          }
+          res.json({ success: true, message: "Vote submitted successfully!" });
+        });
+      })
+      .catch((err) => {
+        console.error("Error processing votes:", err);
+        db.rollback(() => res.status(500).json({ success: false, message: "Failed to submit vote" }));
+      });
   });
 });
+
+
+// Assuming you've already connected your database as `db`
+
+// Endpoint to get election details
+// Route to get all elections
+// Fetch all elections
+app.get("/api/elections", (req, res) => {
+  const query = "SELECT electionId, electionName FROM elections"; // Adjust the query as per your table structure
+
+  db.query(query, (err, results) => {
+      if (err) {
+          console.error("Error fetching elections:", err);
+          return res.status(500).json({ error: "Server error" });
+      }
+      res.json(results); // Return the list of elections
+  });
+});
+
+// Fetch election details by election ID
+app.get("/api/election_details", (req, res) => {
+  const electionId = req.query.electionId;
+
+  const query = `
+      SELECT d.designationId, d.designationName, c.candidateName, c.symbol
+      FROM designations d
+      LEFT JOIN candidate c ON d.designationId = c.designationId
+      WHERE d.electionId = ?`;
+
+  db.query(query, [electionId], (err, results) => {
+      if (err) {
+          console.error("Error fetching election details:", err);
+          return res.status(500).json({ error: "Server error" });
+      }
+
+      const designations = {};
+      results.forEach(row => {
+          const { designationId, designationName, candidateName, symbol } = row;
+
+          if (!designations[designationId]) {
+              designations[designationId] = {
+                  designationName,
+                  candidates: []
+              };
+          }
+
+          if (candidateName) {
+              designations[designationId].candidates.push({
+                  candidateName,
+                  symbol
+              });
+          }
+      });
+
+      res.json({
+          designations: Object.values(designations)
+      });
+  });
+});
+
 
 modifyVoterInfo(app);
 
 // Fetch the candidate name and position from database
-app.get("/api/candidate", (req, res) => {
-  const query = "SELECT candidateName, position, symbol FROM candidate";
+// In launch_election.js or server.js
+app.get('/candidate', (req, res) => {
+  const query = `
+    SELECT c.candidateName AS candidateName, c.email, d.designationName AS designation
+    FROM candidate c
+    LEFT JOIN designations d ON c.designationId = d.designationId
+  `;
+
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching candidate data:", err);
-      res.status(500).send("Server error");
-      return;
+      res.status(500).json({ message: "Error fetching candidate data" });
+    } else {
+      res.json(results);
     }
-    res.json(results); // Send the fetched data as JSON response
   });
 });
+
 
 // Endpoint to fetch total candidate count
 app.get('/api/candidateCount', (req, res) => {
