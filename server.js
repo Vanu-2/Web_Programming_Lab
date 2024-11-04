@@ -174,7 +174,7 @@ app.post("/submitVote", (req, res) => {
 });
 
 app.get("/admin", (req, res) => {
-  const sql = "SELECT candidateName, email, designationld FROM candidate";
+  const sql = "SELECT candidateName, email, designationId FROM candidate";
 
   db.query(sql, (err, results) => {
     if (err) {
@@ -190,15 +190,15 @@ app.get("/admin", (req, res) => {
 modifyVoterInfo(app);
 
 //fetch the candidate name position from database
-app.get("/api/candidate", (req, res) => {
-  const query = "SELECT candidateName, designationid, symbol FROM candidate";
+app.get("/candidate", (req, res) => {
+  const query = "SELECT candidateName, email, designationld FROM candidate";
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching candidate data:", err);
       res.status(500).send("Server error");
       return;
     }
-    res.json(results); // Send the fetched data as JSON response
+    res.json(results);
   });
 });
 
@@ -243,22 +243,12 @@ app.get("/voter", (req, res) => {
   });
 });
 
-app.get("/candidate", (req, res) => {
-  const sql = "SELECT candidateName, email, designationld FROM candidate";
 
-  db.query(sql, (err, results) => {
-    if (err) {
-      console.error("Error fetching candidates:", err);
-      res.status(500).json({ error: "Failed to retrieve candidate" });
-      return;
-    }
-    res.json(results);
-  });
 
-});
+
 
 app.get("/admin", (req, res) => {
-  const sql = "SELECT candidateName, email, designationld FROM candidate";
+  const sql = "SELECT candidateName, email, designationId FROM candidate";
 
   db.query(sql, (err, results) => {
     if (err) {
