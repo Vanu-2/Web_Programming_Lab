@@ -55,7 +55,7 @@ app.post("/registration_form", (req, res) => {
 
   // Insert user data into the database
   const query =
-    "INSERT INTO voter (username, email, dateOfBirth, address, password) VALUES (?, ?, ?, ?, ?)";
+    "INSERT INTO voter (username, v_email, dateOfBirth, address, password) VALUES (?, ?, ?, ?, ?)";
   db.query(
     query,
     [username, email, dateOfBirth, address, password],
@@ -77,7 +77,7 @@ app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   // Check if user is a voter
-  const voterQuery = "SELECT * FROM voter WHERE email = ? AND password = ?";
+  const voterQuery = "SELECT * FROM voter WHERE v_email = ? AND password = ?";
   db.query(voterQuery, [email, password], (err, voterResults) => {
     if (err) {
       console.error("Error querying the database for voter:", err);
@@ -90,7 +90,7 @@ app.post("/login", (req, res) => {
     }
 
     // Check if user is a candidate
-    const candidateQuery = "SELECT * FROM candidate WHERE email = ? AND password = ?";
+    const candidateQuery = "SELECT * FROM candidate WHERE c_email = ? AND password = ?";
     db.query(candidateQuery, [email, password], (err, candidateResults) => {
       if (err) {
         console.error("Error querying the database for candidate:", err);
@@ -221,12 +221,12 @@ app.get("/api/election_details", (req, res) => {
           if (!designations[designationId]) {
               designations[designationId] = {
                   designationName,
-                  candidates: []
+                  candidate: []
               };
           }
 
           if (candidateName) {
-              designations[designationId].candidates.push({
+              designations[designationId].candidate.push({
                   candidateName,
                   symbol
               });
@@ -246,7 +246,7 @@ modifyVoterInfo(app);
 // In launch_election.js or server.js
 app.get('/candidate', (req, res) => {
   const query = `
-    SELECT c.candidateName AS candidateName, c.email, d.designationName AS designation
+    SELECT c.candidateName AS candidateName, c.c_email, d.designationName AS designation
     FROM candidate c
     LEFT JOIN designations d ON c.designationId = d.designationId
   `;
@@ -292,7 +292,7 @@ app.get('/api/voterCount', (req, res) => {
 
 // Show voter list
 app.get("/voter", (req, res) => {
-  const query = "SELECT username, email, dateOfBirth, address FROM voter"; 
+  const query = "SELECT username, v_email, dateOfBirth, address FROM voter"; 
   db.query(query, (err, results) => {
     if (err) {
       console.error("Error fetching voter data:", err);
