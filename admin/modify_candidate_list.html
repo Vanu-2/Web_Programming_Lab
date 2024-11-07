@@ -48,7 +48,7 @@
     <div class="ml-64 p-8 flex-grow">
 
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Modify Voter Information</h1>
+            <h1 class="text-3xl font-bold">Modify Candidate Information</h1>
             <div class="flex items-center space-x-4">
 
                 <!-- Profile with dropdown -->
@@ -79,21 +79,15 @@
                 <tr>
                     <th class="py-3 px-4 text-left">Candidate Name</th>
                     <th class="py-3 px-4 text-left">Symbol</th>
+                    <th class="py-3 px-4 text-left">Post</th>
                     <th class="py-3 px-4 text-left">Actions</th>
                 </tr>
             </thead>
-            <tbody>
-                <tr class="border-t">
-                    <td class="py-3 px-4"></td>
-                    <td class="py-3 px-4"></td>
-                    <td class="py-3 px-4">
-                        <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700">Block</button>
-                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
-                    </td>
-                </tr>
+            <tbody id="candidateTableBody">
+                <!-- Data will be dynamically inserted here -->
             </tbody>
-                    
-                </table>
+        </table>
+        
             </div>
         </main>
 
@@ -123,6 +117,32 @@
                 profileDropdown.classList.add('hidden'); // Hide the dropdown if click outside
             }
         });
+        document.addEventListener("DOMContentLoaded", () => {
+    fetch("/candidatesWithPost")
+        .then(response => response.json())
+        .then(candidates => {
+            const tableBody = document.getElementById("candidateTableBody");
+
+            candidates.forEach(candidate => {
+                const row = document.createElement("tr");
+                row.classList.add("border-t");
+
+                row.innerHTML = `
+                    <td class="py-3 px-4">${candidate.candidateName}</td>
+                    <td class="py-3 px-4">${candidate.symbol}</td>
+                    <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designations.join(", ")}</td>
+                    <td class="py-3 px-4">
+                        <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700">Block</button>
+                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
+                    </td>
+                `;
+
+                tableBody.appendChild(row);
+            });
+        })
+        .catch(error => console.error("Error fetching candidate data:", error));
+});
+
     </script>
 
 </body>

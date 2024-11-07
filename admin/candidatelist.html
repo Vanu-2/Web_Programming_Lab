@@ -49,14 +49,16 @@
 
       <!-- Candidate List Table -->
       <main class="flex-1 p-6">
-        <h2 class="text-2xl font-bold mb-4">Candidate List</h2>
+        <h2 class="text-2xl font-bold mb-4">Candidates List</h2>
         <div class="overflow-x-auto">
           <table class="min-w-full bg-white rounded-lg shadow-lg">
             <thead>
               <tr class="bg-gray-300 text-left">
                 <th class="px-6 py-3 text-gray-700 font-semibold">Name</th>
                 <th class="px-6 py-3 text-gray-700 font-semibold">Email</th>
-                <th class="px-6 py-3 text-gray-700 font-semibold">Position</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Symbol</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Election ID</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Designation ID</th>
               </tr>
             </thead>
             <tbody id="candidate-list">
@@ -90,20 +92,24 @@
       });
 
       // Fetch candidate data and display it in the table
-      fetch("/candidate")
+      fetch("/candidates") // Adjust this endpoint to match your server's setup
         .then((response) => response.json())
         .then((data) => {
           const candidateList = document.getElementById("candidate-list");
+
+          // Loop through the candidates and display their details in table rows
           data.forEach((candidate) => {
             const row = document.createElement("tr");
-            row.classList.add("hover:bg-gray-100");
+            row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
 
             row.innerHTML = `
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-700">${candidate.candidateName}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-700">${candidate.email}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-700">${candidate.designationId}</td>
-              
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.candidateName}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.c_email}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.symbol}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.electionId}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designationId}</td>
             `;
+
             candidateList.appendChild(row);
           });
         })

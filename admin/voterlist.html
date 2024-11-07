@@ -47,7 +47,7 @@
         </div>
       </div>
 
-      <!-- Candidate List Table -->
+      <!-- Voters List Table -->
       <main class="flex-1 p-6">
         <h2 class="text-2xl font-bold mb-4">Voters List</h2>
         <div class="overflow-x-auto">
@@ -56,11 +56,12 @@
               <tr class="bg-gray-300 text-left">
                 <th class="px-6 py-3 text-gray-700 font-semibold">Name</th>
                 <th class="px-6 py-3 text-gray-700 font-semibold">Email</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Date of Birth</th>
                 <th class="px-6 py-3 text-gray-700 font-semibold">Address</th>
               </tr>
             </thead>
             <tbody id="voter-list">
-              <!-- Candidate data will be dynamically inserted here -->
+              <!-- Voter data will be dynamically inserted here -->
             </tbody>
           </table>
         </div>
@@ -74,7 +75,7 @@
       </div>
     </footer>
 
-    <!-- Script to toggle the profile dropdown on click and fetch candidate data -->
+    <!-- Script to toggle the profile dropdown on click and fetch voter data -->
     <script>
       const profileBtn = document.getElementById("profileBtn");
       const profileDropdown = document.getElementById("profileDropdown");
@@ -89,23 +90,24 @@
         }
       });
 
-      // Fetch candidate data and display it in the table
-      
       // Fetch voter data and display it in the table
       fetch("/voter") // Adjust this endpoint to match your server's setup
         .then((response) => response.json())
         .then((data) => {
           const voterList = document.getElementById("voter-list");
 
+          // Loop through the voters and display their details in table rows
           data.forEach((voter) => {
             const row = document.createElement("tr");
-            row.classList.add("hover:bg-gray-100");
+            row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
 
             row.innerHTML = `
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-700">${voter.username}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-700">${voter.email}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-700">${voter.address}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${voter.username}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${voter.v_email}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${voter.dateOfBirth}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${voter.address}</td>
             `;
+
             voterList.appendChild(row);
           });
         })
