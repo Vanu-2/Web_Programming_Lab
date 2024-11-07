@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Page</title>
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        .background-image {
+            background-image: url("oip.jpeg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            height: 100vh;
+        }
+        .password-container {
+            position: relative;
+        }
+        .toggle-password {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-image flex items-center justify-center">
+        <div class="bg-white bg-opacity-75 p-8 rounded-lg shadow-md w-full max-w-md">
+            <div class="text-center mb-6">
+                <img src="l3.png" alt="Logo" class="h-10 mx-auto" />
+            </div>
+            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Log In</h1>
+
+            <!-- Show error message if login failed -->
+            <div id="errorMessage" class="mb-4 text-red-500 text-center hidden">
+                Invalid email or password. Please try again.
+            </div>
+
+            <form action="/login" method="POST">
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" name="email" required />
+                </div>
+
+                <div class="mb-6 password-container">
+                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
+                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" name="password" required />
+                    <span class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
+                </div>
+
+                <div class="flex justify-center">
+                    <button class="bg-blue-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Log In</button>
+                </div>
+
+                <p class="mt-4 text-center">
+                    Not a user? <a href="registration_form.html" class="text-blue-500">Register</a>
+                </p>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Check URL for error message and display if needed
+        const urlParams = new URLSearchParams(window.location.search);
+        if (urlParams.has('error') && urlParams.get('error') === 'invalid') {
+            document.getElementById('errorMessage').classList.remove('hidden');
+        }
+
+        function togglePasswordVisibility() {
+            const passwordInput = document.getElementById("password");
+            const type = passwordInput.type === "password" ? "text" : "password";
+            passwordInput.type = type;
+        }
+    </script>
+</body>
+</html>
