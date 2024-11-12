@@ -34,7 +34,7 @@
           <a href="candidate_dashboard.html" class="block">Dashboard</a>
         </li>
         <li class="px-5 py-3 hover-custom-blue">
-          <a href="candidateView_result.html" class="block">Show Result</a>
+          <a href="candidateView_result.html" class="block">View Result</a>
         </li>
       </ul>
     </div>
@@ -61,15 +61,11 @@
               class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
             >
               <a
-                href="#"
+                href="c_profile.html"
                 class="block px-4 py-2 text-gray-800 hover:bg-gray-200"
                 >View Profile</a
               >
-              <a
-                href="#"
-                class="block px-4 py-2 text-gray-800 hover:bg-gray-200"
-                >Settings</a
-              >
+              
               <form action="admin_dashboard.php" method="post">
                 <button
                   type="submit"
@@ -92,7 +88,7 @@
     <h1 style="font-size: 20px;">Number of candidates:</h1>
     <span id="candidateCount"><h1 class="text-2xl font-bold"></h1></span>
   </p>
-  <a href="/Candidate/candidate_list.html" class="text-black underline mt-4 block">More info</a>
+  <a href="candidate_list.html" class="text-black underline mt-4 block">More info</a>
 </div>
 
 <!-- Voter section -->
@@ -107,13 +103,12 @@
 <!-- Include the external JavaScript file -->
 <script src="dashboard.js"></script>
 
-          <!-- Total Voters -->
-         
-
+          <!-- Voters Voted -->
+        </div>
+      </main>
 
       <!-- Additional content goes here -->
     </div>
-
     <!-- Footer -->
     <footer
       style="background-color: #42476d"
@@ -142,6 +137,10 @@
           profileDropdown.classList.add("hidden"); // Hide the dropdown if click outside
         }
       });
+
+
+
+
     </script>
   </body>
 </html>

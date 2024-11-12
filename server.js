@@ -451,7 +451,36 @@ GROUP BY
 
 
 
+// Endpoint to fetch admin information
+app.get("/api/admin", (req, res) => {
+  const query = "SELECT username, email FROM admin"; // Fetching username and email
+  
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching admin data:", err);
+      return res.status(500).json({ error: "Server error" });
+    }
+    res.json(results); // Send the fetched data as JSON response
+  });
+});
 
+// Endpoint to get candidate data
+app.get('/api/candidate', (req, res) => {
+  const candidateId = 1; // Use a dynamic ID or request param as needed
+
+  db.query('SELECT candidateName, c_email, designationId FROM candidate WHERE id = ?', [candidateId], (err, result) => {
+      if (err) {
+          console.error("Error fetching candidate data:", err);
+          res.status(500).json({ error: "Database query error" });
+          return;
+      }
+      if (result.length > 0) {
+          res.json(result[0]); // Send the candidate data
+      } else {
+          res.status(404).json({ error: "Candidate not found" });
+      }
+  });
+});
 
 // Start the server
 app.listen(port, () => {
