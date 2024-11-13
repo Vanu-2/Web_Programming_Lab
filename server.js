@@ -249,6 +249,74 @@ app.post('/publish-results', (req, res) => {
 
 });
 
+// Endpoint to get results from the results table
+
+app.get('/api/results', (req, res) => {
+
+  const query = `
+
+      SELECT 
+
+          d.designationName AS post, 
+
+          r.candidateEmail AS candidateName, 
+
+          r.voteCount, 
+
+          r.isWinner 
+
+      FROM 
+
+          results r 
+
+      JOIN 
+
+          designations d ON r.designationId = d.designationId 
+
+      WHERE 
+
+          r.electionId = 1;`; // Fixed electionId = 1
+
+
+  db.query(query, (err, results) => {
+
+      if (err) {
+
+          console.error('Error fetching results:', err);
+
+          return res.status(500).json({ error: 'Database query error' });
+
+      }
+      // Group results by designation and find winners
+
+      const groupedResults = results.reduce((acc, result) => {
+
+          const { post, candidateName, voteCount, isWinner } = result;
+
+
+          if (!acc[post]) {
+              acc[post] = {
+                  post,
+                  candidates: [],
+                  winner: null
+              };
+          }
+          acc[post].candidates.push({ candidateName, voteCount });
+          // Determine the winner
+
+          if (isWinner) {
+
+              acc[post].winner = { candidateName, voteCount };
+
+          }
+          return acc;
+
+      }, {});
+      res.json(Object.values(groupedResults)); // Send the grouped results as JSON
+  });
+});
+
+
 // Fetch all elections
 app.get("/api/elections", (req, res) => {
   const query = "SELECT id, electionName FROM elections"; // Adjust the query as per your table structure
