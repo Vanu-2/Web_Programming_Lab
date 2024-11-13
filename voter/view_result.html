@@ -5,7 +5,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-voting- Voter Dashboard</title>
+    <title>E-voting - Voter Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         /* Additional styling using Tailwind utility classes */
@@ -29,12 +29,11 @@
             <li class="px-5 py-3 hover:bg-gray-400">
                 <a href="voter_dashboard.html" class="block">Dashboard</a>
             </li>
-            
             <li class="px-5 py-3 hover:bg-gray-400">
                 <a href="Vote.html" class="block">Participate Election</a>
             </li>
             <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="view_result.html" class="block">Show result</a>
+                <a href="view_result.html" class="block">Show Result</a>
             </li>
         </ul>
     </div>
@@ -80,14 +79,14 @@
                         <th class="py-3 px-4 text-left">Number of Votes</th>
                     </tr>
                 </thead>
-               
+                <tbody>
+                    <!-- Results will be dynamically inserted here -->
+                </tbody>
             </table>
-
-            
         </div>
+
         <div class="bg-green-100 p-6 shadow-lg rounded-lg text-center">
             <h3 class="text-2xl font-bold text-green-600 mb-4">🏆 Winner: </h3>
-            
             <p class="text-lg">Total Votes: </p>
             <p class="text-lg">Symbol: </p>
             <div class="mt-4">
@@ -121,6 +120,41 @@
                 profileDropdown.classList.add('hidden'); // Hide the dropdown if click outside
             }
         });
+
+        // Function to fetch and display election results
+        async function fetchResults() {
+            try {
+                const response = await fetch('/api/results'); // Adjust this URL to match your API endpoint
+                const results = await response.json();
+
+                const tableBody = document.querySelector('table tbody');
+                tableBody.innerHTML = ''; // Clear any existing rows
+
+                results.forEach(result => {
+                    const row = document.createElement('tr');
+                    row.innerHTML = `
+                        <td class="py-3 px-4">${result.post}</td>
+                        <td class="py-3 px-4">${result.candidateName}</td>
+                        <td class="py-3 px-4"><img src="${result.symbol}" alt="Symbol" class="w-10 h-10"/></td>
+                        <td class="py-3 px-4">${result.voteCount}</td>
+                    `;
+                    tableBody.appendChild(row);
+                });
+
+                // Assuming you want to show the winner
+                const winner = results.reduce((prev, current) => (prev.voteCount > current.voteCount) ? prev : current);
+                document.querySelector('.bg-green-100 h3').textContent = `🏆 Winner: ${winner.candidateName}`;
+                document.querySelector('.bg-green-100 p:nth-of-type(1)').textContent = `Total Votes: ${winner.voteCount}`;
+                document.querySelector('.bg-green-100 p:nth-of-type(2)').textContent = `Symbol: ${winner.symbol}`;
+                document.querySelector('.bg-green-100 img').src = winner.symbol;
+
+            } catch (error) {
+                console.error('Error fetching results:', error);
+            }
+        }
+
+        // Call fetchResults when the page loads
+        window.onload = fetchResults;
     </script>
 
 </body>

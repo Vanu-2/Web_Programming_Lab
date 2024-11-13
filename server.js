@@ -121,73 +121,137 @@ app.post("/login", (req, res) => {
     });
   });
 });
-// End of login page backend
 
-// Endpoint to handle file uploads
 // Serve static files from the admin folder
 app.use(express.static(__dirname + "/admin"));
 
-// Fetch candidate name and email from the database
+// Endpoint to fetch results
 
-// Endpoint to handle vote submission
-app.post("/submitVote", (req, res) => {
-  const selections = req.body; // Expects { "DesignationName": "CandidateName", ... }
+app.get('/results', (req, res) => {
 
-  // Start transaction
-  db.beginTransaction((err) => {
-    if (err) {
-      console.error("Error starting transaction:", err);
-      return res.status(500).json({ success: false, message: "Server error" });
-    }
+  const electionId = 1; // Fixed election ID
 
-    const updatePromises = Object.entries(selections).map(([designation, candidateName]) => {
-      const updateVoteQuery = `
-        UPDATE candidate 
-        SET votes = votes + 1 
-        WHERE candidateName = ? 
-          AND designationId = (SELECT designationId FROM designations WHERE designationName = ?)
-      `;
 
-      return new Promise((resolve, reject) => {
-        db.query(updateVoteQuery, [candidateName, designation], (err, result) => {
-          if (err) {
-            console.error(`Error updating vote count for ${designation}:`, err);
-            return reject(err);
-          }
-          if (result.affectedRows === 0) {
-            return reject(new Error(`No candidate found for ${designation}`));
-          }
-          resolve(result);
-        });
-      });
-    });
+  const sql = `
 
-    // Execute all promises in the transaction
-    Promise.all(updatePromises)
-      .then(() => {
-        db.commit((err) => {
-          if (err) {
-            console.error("Error committing transaction:", err);
-            return db.rollback(() => res.status(500).json({ success: false, message: "Server error" }));
-          }
-          res.json({ success: true, message: "Vote submitted successfully!" });
-        });
-      })
-      .catch((err) => {
-        console.error("Error processing votes:", err);
-        db.rollback(() => res.status(500).json({ success: false, message: "Failed to submit vote" }));
-      });
+      SELECT 
+    d.designationId,  -- Ensure you select the designationId
+    d.designationName, 
+    c.candidateName, 
+    c.c_email, 
+    COUNT(v.v_email) AS voteCount,
+    CASE 
+        WHEN COUNT(v.v_email) = maxVote.maxVote THEN 1 
+        ELSE 0 
+    END AS isWinner
+FROM 
+    candidate c
+JOIN 
+    designations d ON c.designationId = d.designationId
+LEFT JOIN 
+    vote v ON c.c_email = v.c_email
+LEFT JOIN 
+    (SELECT designationId, MAX(voteCount) AS maxVote 
+     FROM (
+        SELECT 
+            c.designationId, 
+            COUNT(v.v_email) AS voteCount 
+        FROM 
+            candidate c
+        LEFT JOIN 
+            vote v ON c.c_email = v.c_email
+        GROUP BY 
+            c.c_email
+    ) AS counts GROUP BY designationId) AS maxVote ON d.designationId = maxVote.designationId
+WHERE 
+    d.electionId = ?
+GROUP BY 
+    d.designationId, c.c_email`;
+
+
+  db.query(sql, [electionId], (error, results) => {
+
+      if (error) {
+
+          return res.status(500).json({ error: 'Database query failed' });
+
+      }
+
+      res.json(results);
+
   });
+
 });
 
 
-// Assuming you've already connected your database as `db`
+// Endpoint to publish results
 
-// Endpoint to get election details
-// Route to get all elections
+app.post('/publish-results', (req, res) => {
+
+  const electionId = 1; // Fixed election ID
+
+  const sqlInsert = `
+
+      INSERT INTO results (electionId, designationId, candidateEmail, voteCount, isWinner)
+
+      VALUES (?, ?, ?, ?, ?)
+
+      ON DUPLICATE KEY UPDATE voteCount = ?, isWinner = ?;`;
+
+
+  const results = req.body; // Expecting results from the client
+
+
+  const queries = results.map(row => {
+
+      return new Promise((resolve, reject) => {
+
+          db.query(sqlInsert, [
+
+              electionId,
+
+              row.designationId,
+
+              row.c_email,
+
+              row.voteCount,
+
+              row.isWinner,
+
+              row.voteCount,
+
+              row.isWinner
+
+          ], (error) => {
+
+              if (error) return reject(error);
+
+              resolve();
+
+          });
+
+      });
+
+  });
+
+
+  Promise.all(queries)
+
+      .then(() => res.json({ message: 'Results published successfully!' }))
+
+      .catch(err => {
+
+          console.error('Error publishing results:', err);
+
+          res.status(500).json({ error: 'Failed to publish results: ' + err.message });
+
+      });
+
+});
+
 // Fetch all elections
 app.get("/api/elections", (req, res) => {
-  const query = "SELECT electionId, electionName FROM elections"; // Adjust the query as per your table structure
+  const query = "SELECT id, electionName FROM elections"; // Adjust the query as per your table structure
 
   db.query(query, (err, results) => {
       if (err) {
@@ -199,45 +263,43 @@ app.get("/api/elections", (req, res) => {
 });
 
 // Fetch election details by election ID
-app.get("/api/election_details", (req, res) => {
-  const electionId = req.query.electionId;
-
-  const query = `
-      SELECT d.designationId, d.designationName, c.candidateName, c.symbol
+app.get('/api/election_details', (req, res) => {
+  const electionQuery = `
+      SELECT d.designationName AS designationName, c.candidateName AS candidateName, c.symbol 
       FROM designations d
-      LEFT JOIN candidate c ON d.designationId = c.designationId
-      WHERE d.electionId = ?`;
+      JOIN candidate c ON d.designationId = c.designationId
+      ORDER BY d.designationId;
+  `;
 
-  db.query(query, [electionId], (err, results) => {
+  db.query(electionQuery, (err, results) => {
       if (err) {
-          console.error("Error fetching election details:", err);
-          return res.status(500).json({ error: "Server error" });
+          console.error('Error fetching election details:', err);
+          res.status(500).json({ error: 'Failed to fetch election details' });
+          return;
       }
 
       const designations = {};
-      results.forEach(row => {
-          const { designationId, designationName, candidateName, symbol } = row;
-
-          if (!designations[designationId]) {
-              designations[designationId] = {
-                  designationName,
-                  candidate: []
+      results.forEach((row) => {
+          if (!designations[row.designationName]) {
+              designations[row.designationName] = {
+                  designationName: row.designationName,
+                  candidate: [],
               };
           }
 
-          if (candidateName) {
-              designations[designationId].candidate.push({
-                  candidateName,
-                  symbol
-              });
-          }
+          // Convert symbol to Base64 if it's a BLOB
+          const symbolBase64 = row.symbol ? row.symbol.toString('base64') : null;
+
+          designations[row.designationName].candidate.push({
+              candidateName: row.candidateName,
+              symbol: symbolBase64 ? `data:image/jpeg;base64,${symbolBase64}` : null, // Embed Base64 data URI
+          });
       });
 
-      res.json({
-          designations: Object.values(designations)
-      });
+      res.json({ designations: Object.values(designations) });
   });
 });
+
 
 
 modifyVoterInfo(app);
