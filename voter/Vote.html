@@ -1,125 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>E-voting - Voter Dashboard</title>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-      /* Additional styling using Tailwind utility classes */
-      .hover-custom-blue:hover {
-        background-color: #66cc99;
-      }
-    </style>
-  </head>
-
-  <body class="bg-blue-200 font-sans flex flex-col min-h-screen">
-    <!-- Sidebar -->
-    <div
-      class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto"
-    >
-      <div class="px-11 py-2 w-full flex justify-center">
-        <img
-          src="l3.png"
-          alt="Logo"
-          class="w-full h-auto w-50 object-contain"
-        />
-      </div>
-      <ul id="sidebarMenu" class="mt-8">
-        <li class="px-5 py-3 hover:bg-gray-400">
-          <a href="voter_dashboard.html" class="block">Dashboard</a>
-        </li>
-        <li class="px-5 py-3 hover:bg-gray-400">
-          <a href="Vote.html" class="block">Participate Election</a>
-        </li>
-        <li class="px-5 py-3 hover:bg-gray-400">
-          <a href="view_result.html" class="block">View result</a>
-        </li>
-      </ul>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <title>Election Voting</title>
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <h1 class="text-3xl font-bold mb-6">Election Voting</h1>
+        <div id="election-details" class="space-y-6"></div>
+        <button id="submit-votes" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Submit Votes</button>
     </div>
 
-    <!-- Main Content -->
-    <main class="flex-1 p-6 ml-64">
-      <h1 class="text-3xl font-bold mb-6 text-center">Election Voting</h1>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 mb-6">
-        <!-- President Voting Section -->
-        <div
-          class="bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
-          <h3 class="text-2xl font-bold mb-4">President</h3>
-          <p class="font-semibold mb-4">Select your candidate:</p>
-          <form id="presidentCandidates" class="space-y-4"></form>
-        </div>
-
-        <!-- Vice President Voting Section -->
-        <div
-          class="bg-white text-black p-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
-          <h3 class="text-2xl font-bold mb-4">Vice President</h3>
-          <p class="font-semibold mb-4">Select your candidate:</p>
-          <form id="vicePresidentCandidates" class="space-y-4"></form>
-        </div>
-      </div>
-
-      <!-- Submit Vote Button -->
-      <div class="flex justify-center mt-6">
-        <button
-          id="submitVoteBtn"
-          class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-6 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 ease-in-out"
-        >
-          Submit Vote
-        </button>
-      </div>
-    </main>
-
-    <!-- Footer -->
-    <footer
-      style="background-color: #42476d"
-      class="text-white py-4 fixed bottom-0 w-full"
-    >
-      <div class="container mx-auto text-center">
-        <p>&copy; 2024 Online Vote. All rights reserved.</p>
-      </div>
-    </footer>
-
     <script>
-      // Fetch candidates from the server and populate the forms
-      fetch("/api/candidates")
-        .then((response) => response.json())
-        .then((data) => {
-          // Filter candidates based on their position
-          const presidentCandidates = data.filter(
-            (candidate) => candidate.position === "President"
-          );
-          const vpCandidates = data.filter(
-            (candidate) => candidate.position === "Vice President"
-          );
+        // Function to fetch election details from the backend
+        // Function to fetch election details from the backend
+// Function to fetch election details from the backend
+async function fetchElectionDetails() {
+    const response = await fetch('http://localhost:3000/api/election_details');
+    const data = await response.json();
+    const electionDetailsDiv = document.getElementById('election-details');
 
-          // Populate the President candidates
-          const presidentForm = document.getElementById("presidentCandidates");
-          presidentCandidates.forEach((candidate) => {
-            presidentForm.innerHTML += `
-            <div>
-              <img src="${candidate.symbol}" alt="Symbol" style="height: 50px;">
-              <span>${candidate.candidateName}</span>
-              <input type="radio" name="vote_president" value="${candidate.candidateName}">
-            </div>`;
-          });
+    // Check if designations exist in the response
+    if (data.designations) {
+        data.designations.forEach(designation => {
+            const designationDiv = document.createElement('div');
+            designationDiv.className = "bg-white p-4 rounded shadow";
+            designationDiv.innerHTML = `<h2 class="text-xl font-semibold">${designation.designationName}</h2>`;
 
-          // Populate the Vice President candidates
-          const vpForm = document.getElementById("vicePresidentCandidates");
-          vpCandidates.forEach((candidate) => {
-            vpForm.innerHTML += `
-            <div>
-              <img src="${candidate.symbol}" alt="Symbol" style="height: 50px;">
-              <span>${candidate.candidateName}</span>
-              <input type="radio" name="vote_vp" value="${candidate.candidateName}">
-            </div>`;
-          });
-        })
-        .catch((error) => console.error("Error fetching candidates:", error));
+            designation.candidate.forEach(candidate => {
+                const candidateDiv = document.createElement('div');
+                candidateDiv.className = "flex items-center justify-between py-2 border-b";
+                candidateDiv.innerHTML = `
+                    <label class="flex items-center">
+                        <input type="checkbox" value="${candidate.candidateName}" class="mr-2">
+                        <span>${candidate.candidateName} - ${
+                            candidate.symbol 
+                            ? `<img src="${candidate.symbol}" alt="Symbol" class="inline-block w-6 h-6">`
+                            : `<span class="text-gray-500">No Symbol</span>`
+                        }</span>
+                    </label>
+                `;
+                designationDiv.appendChild(candidateDiv);
+            });
+
+            electionDetailsDiv.appendChild(designationDiv);
+        });
+    } else {
+        console.error('No designations found in the response');
+    }
+}
+
+// Event listener for submitting votes
+document.getElementById('submit-votes').addEventListener('click', () => {
+    const selectedCandidates = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+    console.log('Selected candidates:', selectedCandidates);
+    // Here you can implement the logic to submit the votes to the backend
+});
+
+// Fetch election details on page load
+fetchElectionDetails();
+
+
     </script>
-  </body>
+</body>
 </html>

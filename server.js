@@ -130,55 +130,28 @@ app.use(express.static(__dirname + "/admin"));
 // Fetch candidate name and email from the database
 
 // Endpoint to handle vote submission
-app.post("/submitVote", (req, res) => {
-  const selections = req.body; // Expects { "DesignationName": "CandidateName", ... }
+// app.post("/api/submit_vote", (req, res) => {
+//   const { selectedCandidates, voterEmail, electionId } = req.body;
 
-  // Start transaction
-  db.beginTransaction((err) => {
-    if (err) {
-      console.error("Error starting transaction:", err);
-      return res.status(500).json({ success: false, message: "Server error" });
-    }
+//   if (!selectedCandidates || selectedCandidates.length === 0) {
+//       return res.status(400).json({ error: "No candidates selected" });
+//   }
 
-    const updatePromises = Object.entries(selections).map(([designation, candidateName]) => {
-      const updateVoteQuery = `
-        UPDATE candidate 
-        SET votes = votes + 1 
-        WHERE candidateName = ? 
-          AND designationId = (SELECT designationId FROM designations WHERE designationName = ?)
-      `;
+//   // Insert each vote into the vote table
+//   selectedCandidates.forEach(candidateEmail => {
+//       const query = `INSERT INTO vote (v_email, c_email, election_id) VALUES (?, ?, ?)`;
+//       db.query(query, [voterEmail, candidateEmail, electionId], (err, result) => {
+//           if (err) {
+//               console.error("Error inserting vote:", err);
+//               return res.status(500).json({ error: "Server error" });
+//           }
+//       });
+//   });
 
-      return new Promise((resolve, reject) => {
-        db.query(updateVoteQuery, [candidateName, designation], (err, result) => {
-          if (err) {
-            console.error(`Error updating vote count for ${designation}:`, err);
-            return reject(err);
-          }
-          if (result.affectedRows === 0) {
-            return reject(new Error(`No candidate found for ${designation}`));
-          }
-          resolve(result);
-        });
-      });
-    });
+//   res.json({ message: "Votes submitted successfully" });
+// });
 
-    // Execute all promises in the transaction
-    Promise.all(updatePromises)
-      .then(() => {
-        db.commit((err) => {
-          if (err) {
-            console.error("Error committing transaction:", err);
-            return db.rollback(() => res.status(500).json({ success: false, message: "Server error" }));
-          }
-          res.json({ success: true, message: "Vote submitted successfully!" });
-        });
-      })
-      .catch((err) => {
-        console.error("Error processing votes:", err);
-        db.rollback(() => res.status(500).json({ success: false, message: "Failed to submit vote" }));
-      });
-  });
-});
+// Start the server
 
 
 // Assuming you've already connected your database as `db`
@@ -199,14 +172,41 @@ app.get("/api/elections", (req, res) => {
 });
 
 // Fetch election details by election ID
+app.post("/api/submit_vote", (req, res) => {
+    const { selectedCandidates, voterEmail, electionId } = req.body;
+
+    if (!selectedCandidates || selectedCandidates.length === 0) {
+        return res.status(400).json({ error: "No candidates selected" });
+    }
+
+    // Insert each vote into the vote table
+    const voteEntries = selectedCandidates.map(candidateEmail => [voterEmail, candidateEmail, electionId]);
+    const query = "INSERT INTO vote (v_email, c_email, election_id) VALUES ?";
+
+    db.query(query, [voteEntries], (err, result) => {
+        if (err) {
+            console.error("Error inserting votes:", err);
+            return res.status(500).json({ error: "Server error" });
+        }
+        res.json({ message: "Votes submitted successfully" });
+    });
+});
+
 app.get("/api/election_details", (req, res) => {
-  const electionId = req.query.electionId;
+  const electionId = '1'; // Example electionId
 
   const query = `
-      SELECT d.designationId, d.designationName, c.candidateName, c.symbol
-      FROM designations d
-      LEFT JOIN candidate c ON d.designationId = c.designationId
-      WHERE d.electionId = ?`;
+      SELECT 
+          d.designationId, 
+          d.designationName, 
+          c.candidateName, 
+          c.symbol
+      FROM 
+          designations d
+      LEFT JOIN 
+          candidate c ON d.designationId = c.designationId
+      WHERE 
+          d.electionId = ?`;
 
   db.query(query, [electionId], (err, results) => {
       if (err) {
@@ -226,9 +226,12 @@ app.get("/api/election_details", (req, res) => {
           }
 
           if (candidateName) {
+              // Assuming the symbol BLOB is saved as a file on the server
+              const imageUrl = symbol ? `/images/${candidateName}.jpg` : null;
+
               designations[designationId].candidate.push({
                   candidateName,
-                  symbol
+                  symbol: imageUrl
               });
           }
       });
@@ -481,6 +484,31 @@ app.get('/api/candidate', (req, res) => {
       }
   });
 });
+
+
+
+
+// Submit the votes
+app.post('/api/submitVote', (req, res) => {
+  const { votes } = req.body;
+
+  if (!votes || votes.length === 0) {
+      return res.status(400).json({ success: false, message: 'No votes selected' });
+  }
+
+  const voteEntries = votes.map(vote => [vote]);
+  const query = 'INSERT INTO vote (c_email, v_email) VALUES ?';
+
+  connection.query(query, [voteEntries], (err, result) => {
+      if (err) {
+          console.error('Error submitting vote:', err);
+          return res.status(500).json({ success: false, message: 'Error submitting votes' });
+      }
+
+      res.json({ success: true, message: 'Votes submitted successfully' });
+  });
+});
+
 
 // Start the server
 app.listen(port, () => {
