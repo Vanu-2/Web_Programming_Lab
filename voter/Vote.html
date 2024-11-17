@@ -59,7 +59,7 @@
         </div>
 
         <!-- Election Voting Details -->
-         <div class="bg-white p-6 rounded shadow space-y-6">
+        <div class="bg-white p-6 rounded shadow space-y-6">
             <div id="election-details" class="space-y-6"></div>
             <button id="submit-votes" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Submit Votes</button>
         </div>
@@ -111,21 +111,20 @@
                     designationDiv.innerHTML = `<h2 class="text-xl font-semibold">${designation.designationName}</h2>`;
 
                     designation.candidate.forEach(candidate => {
-                        const candidateDiv = document.createElement('div');
-                        candidateDiv.className = "flex items-center justify-between py-2 border-b";
-                        candidateDiv.innerHTML = `
-                            <label class="flex items-center">
-                                <input type="checkbox" value="${candidate.email}" class="mr-2">
-                                <span>${candidate.candidateName} - ${
-                                    candidate.symbol 
-                                    ? `<img src="${candidate.symbol}" alt="Symbol" class="inline-block w-6 h-6">`
-                                    : `<span class="text-gray-500">No Symbol</span>`
-                                }</span>
-                            </label>
-                        `;
-                        designationDiv.appendChild(candidateDiv);
-                    });
-
+    const candidateDiv = document.createElement('div');
+    candidateDiv.className = "flex items-center justify-between py-2 border-b";
+    candidateDiv.innerHTML = `
+        <label class="flex items-center">
+            <input type="checkbox" value="${candidate.email}" class="mr-2">
+            <span>${candidate.candidateName} - ${
+                candidate.symbol 
+                ? `<img src="${candidate.symbol}" alt="Symbol" class="inline-block w-6 h-6">`
+                : `<span class="text-gray-500">No Symbol</span>`
+            }</span>
+        </label>
+    `;
+    designationDiv.appendChild(candidateDiv);
+});
                     electionDetailsDiv.appendChild(designationDiv);
                 });
             } else {

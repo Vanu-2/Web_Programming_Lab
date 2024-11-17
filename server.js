@@ -253,12 +253,11 @@ app.post('/api/submit_votes', (req, res) => {
           }
 
           // Step 2: Insert the votes into the database
-          const insertQuery = 'INSERT INTO vote (vote_id, c_email, v_email) VALUES (?, ?, ?)';
-          let voteId = 1;  // Start the voteId from 1 or from the last existing voteId + 1
+          const insertQuery = 'INSERT INTO vote (c_email, v_email) VALUES (?, ?)';
 
           // Create an array of promises to insert votes for each selected candidate
           const insertPromises = candidates.map(cEmail => new Promise((resolve, reject) => {
-              db.query(insertQuery, [voteId++, cEmail, voterEmail], (err) => {
+              db.query(insertQuery, [cEmail, voterEmail], (err) => {
                   if (err) {
                       reject(err);
                   } else {
@@ -284,6 +283,7 @@ app.post('/api/submit_votes', (req, res) => {
   }
 });
 
+
 app.get("/api/election_details", (req, res) => {
   const electionId = '1'; // Example electionId
 
@@ -291,7 +291,8 @@ app.get("/api/election_details", (req, res) => {
       SELECT 
           d.designationId, 
           d.designationName, 
-          c.candidateName, 
+          c.candidateName,
+          c.c_email,  -- Include the candidate's email
           c.symbol
       FROM 
           designations d
@@ -308,7 +309,7 @@ app.get("/api/election_details", (req, res) => {
 
       const designations = {};
       results.forEach(row => {
-          const { designationId, designationName, candidateName, symbol } = row;
+          const { designationId, designationName, candidateName, c_email, symbol } = row;
 
           if (!designations[designationId]) {
               designations[designationId] = {
@@ -321,8 +322,10 @@ app.get("/api/election_details", (req, res) => {
               // Assuming the symbol BLOB is saved as a file on the server
               const imageUrl = symbol ? `/images/${candidateName}.jpg` : null;
 
+              // Include email in the response object for each candidate
               designations[designationId].candidate.push({
                   candidateName,
+                  email: c_email, // Add candidate email
                   symbol: imageUrl
               });
           }
@@ -333,6 +336,7 @@ app.get("/api/election_details", (req, res) => {
       });
   });
 });
+
 
 
 modifyVoterInfo(app);
