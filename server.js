@@ -4,7 +4,7 @@ const mysql = require("mysql");
 const multer = require("multer");
 const fs = require("fs");
 const csvParser = require("csv-parser"); // Install this package for parsing CSV files
-
+const session = require("express-session");
 const modifyVoterInfo = require("./voter_information");
 
 const app = express();
@@ -14,7 +14,12 @@ app.use(bodyParser.json());
 // Middleware for parsing form data
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(express.static(__dirname)); // Serve static files from the current directory
-
+app.use(session({
+  secret: 'your-secret-key', // Replace with a strong secret key
+  resave: false,
+  saveUninitialized: true,
+  cookie: { secure: false } // Set to true if using HTTPS
+}));
 // Set up multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -76,6 +81,8 @@ app.post("/registration_form", (req, res) => {
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
+  console.log("Received login request for email:", email);
+
   // Check if user is a voter
   const voterQuery = "SELECT * FROM voter WHERE v_email = ? AND password = ?";
   db.query(voterQuery, [email, password], (err, voterResults) => {
@@ -85,9 +92,13 @@ app.post("/login", (req, res) => {
     }
 
     if (voterResults.length > 0) {
+      console.log("User found in voter table:", email);
+      req.session.userEmail = email;
       // Voter exists, redirect to voter dashboard
       return res.redirect("/voter/voter_dashboard.html");
     }
+
+    console.log("User not found in voter table:", email);
 
     // Check if user is a candidate
     const candidateQuery = "SELECT * FROM candidate WHERE c_email = ? AND password = ?";
@@ -98,9 +109,13 @@ app.post("/login", (req, res) => {
       }
 
       if (candidateResults.length > 0) {
+        console.log("User found in candidate table:", email);
+        req.session.userEmail = email;
         // Candidate exists, redirect to candidate dashboard
         return res.redirect("/Candidate/candidate_dashboard.html");
       }
+
+      console.log("User not found in candidate table:", email);
 
       // Check if user is an admin
       const adminQuery = "SELECT * FROM admin WHERE email = ? AND password = ?";
@@ -111,9 +126,13 @@ app.post("/login", (req, res) => {
         }
 
         if (adminResults.length > 0) {
+          console.log("User found in admin table:", email);
+          req.session.userEmail = email;
           // Admin exists, redirect to admin dashboard
           return res.redirect("/admin/admin_dashboard.html");
         }
+
+        console.log("User not found in any table:", email);
 
         // If no match found, user is not found in any table
         res.redirect("/login.html?error=invalid");
@@ -121,44 +140,75 @@ app.post("/login", (req, res) => {
     });
   });
 });
+
 // End of login page backend
 
 // Endpoint to handle file uploads
 // Serve static files from the admin folder
 app.use(express.static(__dirname + "/admin"));
 
-// Fetch candidate name and email from the database
+app.get("/getUserData", (req, res) => {
+  if (!req.session.userEmail) {
+    return res.status(401).json({ error: "User not authenticated" });
+  }
 
-// Endpoint to handle vote submission
-// app.post("/api/submit_vote", (req, res) => {
-//   const { selectedCandidates, voterEmail, electionId } = req.body;
+  const userEmail = req.session.userEmail;
 
-//   if (!selectedCandidates || selectedCandidates.length === 0) {
-//       return res.status(400).json({ error: "No candidates selected" });
+  // Query for all possible user roles
+  const queries = [
+    `SELECT username, v_email AS email FROM voter WHERE v_email = ?`,
+    `SELECT candidateName AS username, c_email AS email FROM candidate WHERE c_email = ?`,
+    `SELECT username, email FROM admin WHERE email = ?`
+  ];
+
+  let found = false;
+
+  queries.forEach((query, index) => {
+    db.query(query, [userEmail], (err, results) => {
+      if (err) {
+        console.error("Error fetching user data:", err);
+        if (!found && index === queries.length - 1) res.status(500).json({ error: "Server error" });
+        return;
+      }
+
+      if (results.length > 0 && !found) {
+        found = true;
+        const user = results[0];
+        res.json({ username: user.username, email: user.email });
+      } else if (index === queries.length - 1 && !found) {
+        res.status(404).json({ error: "User not found" });
+      }
+    });
+  });
+});
+// app.get('/getUserData', (req, res) => {
+//   if (req.session && req.session.user) {
+//     res.json({
+//       email: req.session.user.email,
+//       username: req.session.user.username,
+//     });
+//   } else {
+//     res.status(401).json({ error: "User not logged in" });
 //   }
-
-//   // Insert each vote into the vote table
-//   selectedCandidates.forEach(candidateEmail => {
-//       const query = `INSERT INTO vote (v_email, c_email, election_id) VALUES (?, ?, ?)`;
-//       db.query(query, [voterEmail, candidateEmail, electionId], (err, result) => {
-//           if (err) {
-//               console.error("Error inserting vote:", err);
-//               return res.status(500).json({ error: "Server error" });
-//           }
-//       });
-//   });
-
-//   res.json({ message: "Votes submitted successfully" });
 // });
 
-// Start the server
 
 
-// Assuming you've already connected your database as `db`
+// Logout route
+// Logout route
+app.post('/logout', (req, res) => {
+  req.session.destroy((err) => {
+    if (err) {
+      console.error('Error destroying session:', err);
+      return res.status(500).json({ error: 'Could not log out' });
+    }
+    res.clearCookie('connect.sid'); // Clear the session cookie
+    res.redirect('/login.html');   // Redirect to the login page
+  });
+});
 
-// Endpoint to get election details
-// Route to get all elections
-// Fetch all elections
+
+
 app.get("/api/elections", (req, res) => {
   const query = "SELECT electionId, electionName FROM elections"; // Adjust the query as per your table structure
 
@@ -172,24 +222,66 @@ app.get("/api/elections", (req, res) => {
 });
 
 // Fetch election details by election ID
-app.post("/api/submit_vote", (req, res) => {
-    const { selectedCandidates, voterEmail, electionId } = req.body;
+app.post('/api/submit_votes', (req, res) => {
+  // Check if the user is logged in (session must contain the user's email)
+  if (req.session && req.session.userEmail) {
+      const voterEmail = req.session.userEmail;  // Access email from session
+      console.log('Logged in email:', voterEmail);
 
-    if (!selectedCandidates || selectedCandidates.length === 0) {
-        return res.status(400).json({ error: "No candidates selected" });
-    }
+      // Get the selected candidates from the request body
+      const { candidates } = req.body;
+      
+      // Ensure that the candidates array is not empty
+      if (!Array.isArray(candidates) || candidates.length === 0) {
+          return res.status(400).json({ error: 'No candidates selected.' });
+      }
 
-    // Insert each vote into the vote table
-    const voteEntries = selectedCandidates.map(candidateEmail => [voterEmail, candidateEmail, electionId]);
-    const query = "INSERT INTO vote (v_email, c_email, election_id) VALUES ?";
+      // Print the selected candidate emails
+      console.log('Selected candidates (c_email):', candidates);
 
-    db.query(query, [voteEntries], (err, result) => {
-        if (err) {
-            console.error("Error inserting votes:", err);
-            return res.status(500).json({ error: "Server error" });
-        }
-        res.json({ message: "Votes submitted successfully" });
-    });
+      // Step 1: Check if the user has already voted
+      const checkQuery = 'SELECT * FROM vote WHERE v_email = ?';
+      db.query(checkQuery, [voterEmail], (err, results) => {
+          if (err) {
+              console.error('Database error:', err);
+              return res.status(500).json({ error: 'Database error.' });
+          }
+          
+          // If the user has already voted, return an error
+          if (results.length > 0) {
+              return res.status(403).json({ error: 'You have already voted.' });
+          }
+
+          // Step 2: Insert the votes into the database
+          const insertQuery = 'INSERT INTO vote (vote_id, c_email, v_email) VALUES (?, ?, ?)';
+          let voteId = 1;  // Start the voteId from 1 or from the last existing voteId + 1
+
+          // Create an array of promises to insert votes for each selected candidate
+          const insertPromises = candidates.map(cEmail => new Promise((resolve, reject) => {
+              db.query(insertQuery, [voteId++, cEmail, voterEmail], (err) => {
+                  if (err) {
+                      reject(err);
+                  } else {
+                      resolve();
+                  }
+              });
+          }));
+
+          // Wait for all insertions to finish
+          Promise.all(insertPromises)
+              .then(() => {
+                  // All votes have been successfully inserted
+                  res.json({ message: 'Votes submitted successfully!' });
+              })
+              .catch((err) => {
+                  console.error('Error inserting votes:', err);
+                  res.status(500).json({ error: 'Failed to submit votes.' });
+              });
+      });
+  } else {
+      // User is not logged in
+      res.status(401).json({ error: 'User not logged in.' });
+  }
 });
 
 app.get("/api/election_details", (req, res) => {
