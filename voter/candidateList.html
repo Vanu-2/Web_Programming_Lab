@@ -74,16 +74,30 @@
 
       <!-- Dashboard Content -->
       <main class="flex-1 p-6">
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
-          <div class="bg-white text-black p-6 rounded-lg shadow">
-            <h3 class="text-2xl font-bold">1</h3>
-            <p class="mt-2">Candidate List</p>
-            <a
-              href="candidateList.html"
-              class="text-black underline mt-4 block"
-              >More info</a
-            >
-          </div>
+        <h2 class="text-2xl font-bold mb-4">Candidates List</h2>
+        <div class="overflow-x-auto">
+          <table class="min-w-full bg-white rounded-lg shadow-lg">
+            <thead>
+              <tr class="bg-gray-300 text-left">
+                <th class="px-6 py-3 text-gray-700 font-semibold">Name</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Email</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Symbol</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Election ID</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Designation ID</th>
+              </tr>
+            </thead>
+            <tbody id="candidate-list">
+              <!-- Candidate data will be dynamically inserted here -->
+            </tbody>
+          </table>
+        </div>
+      
+
+
+<!-- Include the external JavaScript file -->
+<script src="dashboard.js"></script>
+
+          <!-- Voters Voted -->
         </div>
       </main>
     </div>
@@ -96,8 +110,7 @@
     </footer>
 
     <!-- Script to toggle profile dropdown and fetch user data -->
-    <script>
-      const profileBtn = document.getElementById("profileBtn");
+      <script>const profileBtn = document.getElementById("profileBtn");
       const profileDropdown = document.getElementById("profileDropdown");
 
       profileBtn.addEventListener("click", () => {
@@ -127,6 +140,50 @@
             console.error("Error fetching user data:", error);
           });
       });
+
+      fetch("/candidates")
+  .then((response) => response.json())
+  .then((data) => {
+    const candidateList = document.getElementById("candidate-list");
+
+    // Loop through the candidates and display their details in table rows
+    data.forEach((candidate) => {
+      const row = document.createElement("tr");
+      row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
+
+      row.innerHTML = `
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.candidateName}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.c_email}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">
+          ${candidate.symbol 
+            ? `<img src="data:image/png;base64,${candidate.symbol}" alt="Symbol" class="w-10 h-10 object-contain" />` 
+            : "No Symbol"}
+        </td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.electionId}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designationId}</td>
+      `;
+
+      candidateList.appendChild(row);
+    });
+  })
+  .catch((error) => {
+    console.error("Error fetching candidate data:", error);
+  });
+
+// Fetch the candidate count and voter count from the backend and update the HTML
+Promise.all([
+    fetch('/api/candidateCount').then(response => response.json())
+  ])
+    .then(([candidateData, voterData]) => {
+      document.getElementById('candidateCount').textContent = candidateData.count;// This should work if the ID matches
+    })
+    .catch(error => {
+      console.error('Error fetching counts:', error);
+      document.getElementById('candidateCount').textContent = 'Error';
+       // Handle error for voter count
+    });
+  
+
     </script>
   </body>
 </html>

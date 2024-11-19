@@ -181,20 +181,7 @@ app.get("/getUserData", (req, res) => {
     });
   });
 });
-// app.get('/getUserData', (req, res) => {
-//   if (req.session && req.session.user) {
-//     res.json({
-//       email: req.session.user.email,
-//       username: req.session.user.username,
-//     });
-//   } else {
-//     res.status(401).json({ error: "User not logged in" });
-//   }
-// });
 
-
-
-// Logout route
 // Logout route
 app.post('/logout', (req, res) => {
   req.session.destroy((err) => {
@@ -236,10 +223,8 @@ app.post('/api/submit_votes', (req, res) => {
           return res.status(400).json({ error: 'No candidates selected.' });
       }
 
-      // Print the selected candidate emails
+      
       console.log('Selected candidates (c_email):', candidates);
-
-      // Step 1: Check if the user has already voted
       const checkQuery = 'SELECT * FROM vote WHERE v_email = ?';
       db.query(checkQuery, [voterEmail], (err, results) => {
           if (err) {
@@ -247,12 +232,12 @@ app.post('/api/submit_votes', (req, res) => {
               return res.status(500).json({ error: 'Database error.' });
           }
           
-          // If the user has already voted, return an error
+         
           if (results.length > 0) {
               return res.status(403).json({ error: 'You have already voted.' });
           }
 
-          // Step 2: Insert the votes into the database
+          
           const insertQuery = 'INSERT INTO vote (c_email, v_email) VALUES (?, ?)';
 
           // Create an array of promises to insert votes for each selected candidate
@@ -285,59 +270,57 @@ app.post('/api/submit_votes', (req, res) => {
 
 
 app.get("/api/election_details", (req, res) => {
-  const electionId = '1'; // Example electionId
+    const electionId = '1'; // Example electionId
 
-  const query = `
-      SELECT 
-          d.designationId, 
-          d.designationName, 
-          c.candidateName,
-          c.c_email,  -- Include the candidate's email
-          c.symbol
-      FROM 
-          designations d
-      LEFT JOIN 
-          candidate c ON d.designationId = c.designationId
-      WHERE 
-          d.electionId = ?`;
+    const query = `
+        SELECT 
+            d.designationId, 
+            d.designationName, 
+            c.candidateName,
+            c.c_email,  -- Include the candidate's email
+            c.symbol
+        FROM 
+            designations d
+        LEFT JOIN 
+            candidate c ON d.designationId = c.designationId
+        WHERE 
+            d.electionId = ?`;
 
-  db.query(query, [electionId], (err, results) => {
-      if (err) {
-          console.error("Error fetching election details:", err);
-          return res.status(500).json({ error: "Server error" });
-      }
+    db.query(query, [electionId], (err, results) => {
+        if (err) {
+            console.error("Error fetching election details:", err);
+            return res.status(500).json({ error: "Server error" });
+        }
 
-      const designations = {};
-      results.forEach(row => {
-          const { designationId, designationName, candidateName, c_email, symbol } = row;
+        const designations = {};
+        results.forEach(row => {
+            const { designationId, designationName, candidateName, c_email, symbol } = row;
 
-          if (!designations[designationId]) {
-              designations[designationId] = {
-                  designationName,
-                  candidate: []
-              };
-          }
+            if (!designations[designationId]) {
+                designations[designationId] = {
+                    designationName,
+                    candidate: []
+                };
+            }
 
-          if (candidateName) {
-              // Assuming the symbol BLOB is saved as a file on the server
-              const imageUrl = symbol ? `/images/${candidateName}.jpg` : null;
+            if (candidateName) {
+                // Convert BLOB to Base64
+                const base64Symbol = symbol 
+                    ? `data:image/jpeg;base64,${symbol.toString('base64')}`
+                    : null;
 
-              // Include email in the response object for each candidate
-              designations[designationId].candidate.push({
-                  candidateName,
-                  email: c_email, // Add candidate email
-                  symbol: imageUrl
-              });
-          }
-      });
+                designations[designationId].candidate.push({
+                    candidateName,
+                    email: c_email,
+                    symbol: base64Symbol // Add the Base64 image
+                });
+            }
+        });
 
-      res.json({
-          designations: Object.values(designations)
-      });
-  });
+        // Send the designations object as JSON
+        res.json({ designations: Object.values(designations) });
+    });
 });
-
-
 
 modifyVoterInfo(app);
 
@@ -401,15 +384,22 @@ app.get("/voter", (req, res) => {
   });
 });
 app.get("/candidates", (req, res) => {
-  const query = "SELECT candidateName, c_email, symbol, electionId, designationId FROM candidate";
-  db.query(query, (err, results) => {
+  const { page = 1, limit = 10 } = req.query; // Default values
+  const offset = (page - 1) * limit;
+  const query = `SELECT candidateName, c_email, symbol, electionId, designationId FROM candidate LIMIT ? OFFSET ?`;
+  db.query(query, [Number(limit), Number(offset)], (err, results) => {
     if (err) {
-      console.error("Error fetching candidate data:", err);
-      return res.status(500).send("Server error");
+      console.error("Error fetching candidates:", err);
+      return res.status(500).json({ error: "Server error" });
     }
-    res.json(results); // Send the fetched data as JSON response
+    const candidates = results.map(candidate => ({
+      ...candidate,
+      symbol: candidate.symbol ? Buffer.from(candidate.symbol).toString("base64") : null,
+    }));
+    res.json(candidates);
   });
 });
+
 
 
 app.get("/elections", (req, res) => {
