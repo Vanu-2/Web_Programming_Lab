@@ -5,14 +5,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>E-voting- Voter Dashboard</title>
+    <title>E-voting - Voter Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        /* Additional styling using Tailwind utility classes */
-        /* Custom hover color for sidebar links */
         .hover-custom-blue:hover {
             background-color: #66cc99;
-            /* Soft greenish-blue hover color */
         }
     </style>
 </head>
@@ -23,18 +20,16 @@
     <div class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto">
         <div class="px-11 py-2 w-full flex justify-center">
             <img src="l3.png" alt="Logo" class="w-full h-auto w-50 object-contain" />
-            <!-- Adjust logo width -->
         </div>
         <ul id="sidebarMenu" class="mt-8">
             <li class="px-5 py-3 hover:bg-gray-400">
                 <a href="voter_dashboard.html" class="block">Dashboard</a>
             </li>
-            
             <li class="px-5 py-3 hover:bg-gray-400">
                 <a href="Vote.html" class="block">Participate Election</a>
             </li>
             <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="view_result.html" class="block">Show result</a>
+                <a href="view_result.html" class="block">Show Result</a>
             </li>
         </ul>
     </div>
@@ -45,40 +40,19 @@
         <div class="flex justify-between items-center mb-8">
             <h1 class="text-3xl font-bold">Voter Dashboard</h1>
             <div class="flex items-center space-x-4">
-                <!-- Profile with dropdown -->
                 <div class="relative">
-                  <button id="profileBtn" class="focus:outline-none">
-                    <img
-                      src="l2.png"
-                      alt="Profile"
-                      class="w-10 h-10 rounded-full cursor-pointer"
-                    />
-                  </button>
-      
-                  <!-- Dropdown Menu -->
-                  <div
-                    id="profileDropdown"
-                    class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
-                  >
-                    <p class="block px-4 py-2 text-gray-800">
-                      <strong>Email:</strong> <span id="user-email">Loading...</span>
-                    </p>
-                    <p class="block px-4 py-2 text-gray-800">
-                      <strong>Username:</strong> <span id="user-name">Loading...</span>
-                    </p>
-                 
-                    <form action="/logout" method="post">
-                      <button
-                        type="submit"
-                        class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200"
-                      >
-                        Logout
-                      </button>
-                    </form>
-                    
-                  </div>
+                    <button id="profileBtn" class="focus:outline-none">
+                        <img src="l2.png" alt="Profile" class="w-10 h -10 rounded-full cursor-pointer">
+                    </button>
+                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                        <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">View Profile</a>
+                        <a href="#" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Settings</a>
+                        <form action="voter_dashboard.html" method="post">
+                            <button type="submit" name="logout" class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200">Logout</button>
+                        </form>
+                    </div>
                 </div>
-              </div>
+            </div>
         </div>
 
         <!-- Dashboard Content -->
@@ -89,26 +63,19 @@
                     <tr>
                         <th class="py-3 px-4 text-left">Post</th>
                         <th class="py-3 px-4 text-left">Candidate Name</th>
-                        <th class="py-3 px-4 text-left">Symbol</th>
                         <th class="py-3 px-4 text-left">Number of Votes</th>
                     </tr>
                 </thead>
-               
+                <tbody id="resultsTableBody">
+                    <!-- Results will be dynamically inserted here -->
+                </tbody>
             </table>
-
-            
         </div>
+
         <div class="bg-green-100 p-6 shadow-lg rounded-lg text-center">
-            <h3 class="text-2xl font-bold text-green-600 mb-4">🏆 Winner: </h3>
-            
-            <p class="text-lg">Total Votes: </p>
-            <p class="text-lg">Symbol: </p>
-            <div class="mt-4">
-                <img src="winner_sticker.png" alt="Winner Badge" class="w-32 h-32 mx-auto">
-            </div>
+            <h3 class="text-2xl font-bold text-green-600 mb-4">🏆 Winners:</h3>
+            <div id="winnersList" class="text-lg"></div>
         </div>
-
-        <!-- Additional content goes here -->
 
     </div>
 
@@ -121,36 +88,58 @@
 
     <!-- Script to toggle the profile dropdown on click -->
     <script>
-        const profileBtn = document.getElementById("profileBtn");
-      const profileDropdown = document.getElementById("profileDropdown");
+        const profileBtn = document.getElementById('profileBtn');
+        const profileDropdown = document.getElementById('profileDropdown');
 
-      profileBtn.addEventListener("click", () => {
-        profileDropdown.classList.toggle("hidden");
-      });
+        profileBtn.addEventListener('click', () => {
+            profileDropdown.classList.toggle('hidden'); // Toggle the dropdown visibility
+        });
 
-      window.addEventListener("click", (e) => {
-        if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-          profileDropdown.classList.add("hidden");
-        }
-      });
-
-      // Fetch user data and populate fields
-      document.addEventListener("DOMContentLoaded", () => {
-        fetch("/getUserData")
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch user data");
+        // Close the dropdown if clicked outside
+        window.addEventListener('click', (e) => {
+            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                profileDropdown.classList.add('hidden'); // Hide the dropdown if click outside
             }
-            return response.json();
-          })
-          .then((data) => {
-            document.getElementById("user-email").textContent = data.email || "N/A";
-            document.getElementById("user-name").textContent = data.username || "N/A";
-          })
-          .catch((error) => {
-            console.error("Error fetching user data:", error);
-          });
-      });
+        });
+
+        // Function to fetch and display election results
+        async function fetchResults() {
+            try {
+                const response = await fetch('/api/results'); // Adjust this URL to match your API endpoint
+                const results = await response.json();
+
+                const tableBody = document.getElementById('resultsTableBody');
+                tableBody.innerHTML = ''; // Clear any existing rows
+
+                const winnersList = document.getElementById('winnersList');
+                winnersList.innerHTML = ''; // Clear previous winners
+
+                results.forEach(result => {
+                    result.candidates.forEach(candidate => {
+                        const row = document.createElement('tr');
+                        row.innerHTML = `
+                            <td class="py-3 px-4">${result.post}</td>
+                            <td class="py-3 px-4">${candidate.candidateName}</td>
+                            <td class="py-3 px-4">${candidate.voteCount}</td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+
+                    // Display the winner for each designation
+                    if (result.winner) {
+                        const winnerItem = document.createElement('div');
+                        winnerItem.textContent = `${result.post}: ${result.winner.candidateName} (Votes: ${result.winner.voteCount})`;
+                        winnersList.appendChild(winnerItem);
+                    }
+                });
+
+            } catch (error) {
+                console.error('Error fetching results:', error);
+            }
+        }
+
+        // Call fetchResults when the page loads
+        window.onload = fetchResults;
     </script>
 
 </body>

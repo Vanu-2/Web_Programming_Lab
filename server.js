@@ -324,6 +324,197 @@ app.get("/api/election_details", (req, res) => {
 
 modifyVoterInfo(app);
 
+// Endpoint to fetch results
+
+app.get('/results', (req, res) => {
+
+  const electionId = 1; // Fixed election ID
+
+
+  const sql = `
+
+      SELECT 
+    d.designationId,  -- Ensure you select the designationId
+    d.designationName, 
+    c.candidateName, 
+    c.c_email, 
+    COUNT(v.v_email) AS voteCount,
+    CASE 
+        WHEN COUNT(v.v_email) = maxVote.maxVote THEN 1 
+        ELSE 0 
+    END AS isWinner
+FROM 
+    candidate c
+JOIN 
+    designations d ON c.designationId = d.designationId
+LEFT JOIN 
+    vote v ON c.c_email = v.c_email
+LEFT JOIN 
+    (SELECT designationId, MAX(voteCount) AS maxVote 
+     FROM (
+        SELECT 
+            c.designationId, 
+            COUNT(v.v_email) AS voteCount 
+        FROM 
+            candidate c
+        LEFT JOIN 
+            vote v ON c.c_email = v.c_email
+        GROUP BY 
+            c.c_email
+    ) AS counts GROUP BY designationId) AS maxVote ON d.designationId = maxVote.designationId
+WHERE 
+    d.electionId = ?
+GROUP BY 
+    d.designationId, c.c_email`;
+
+
+  db.query(sql, [electionId], (error, results) => {
+
+      if (error) {
+
+          return res.status(500).json({ error: 'Database query failed' });
+
+      }
+
+      res.json(results);
+
+  });
+
+});
+
+
+// Endpoint to publish results
+
+app.post('/publish-results', (req, res) => {
+
+  const electionId = 1; // Fixed election ID
+
+  const sqlInsert = `
+
+      INSERT INTO results (electionId, designationId, candidateEmail, voteCount, isWinner)
+
+      VALUES (?, ?, ?, ?, ?)
+
+      ON DUPLICATE KEY UPDATE voteCount = ?, isWinner = ?;`;
+
+
+  const results = req.body; // Expecting results from the client
+
+
+  const queries = results.map(row => {
+
+      return new Promise((resolve, reject) => {
+
+          db.query(sqlInsert, [
+
+              electionId,
+
+              row.designationId,
+
+              row.c_email,
+
+              row.voteCount,
+
+              row.isWinner,
+
+              row.voteCount,
+
+              row.isWinner
+
+          ], (error) => {
+
+              if (error) return reject(error);
+
+              resolve();
+
+          });
+
+      });
+
+  });
+
+
+  Promise.all(queries)
+
+      .then(() => res.json({ message: 'Results published successfully!' }))
+
+      .catch(err => {
+
+          console.error('Error publishing results:', err);
+
+          res.status(500).json({ error: 'Failed to publish results: ' + err.message });
+
+      });
+
+});
+
+// Endpoint to get results from the results table
+
+app.get('/api/results', (req, res) => {
+
+  const query = `
+
+      SELECT 
+
+          d.designationName AS post, 
+
+          r.candidateEmail AS candidateName, 
+
+          r.voteCount, 
+
+          r.isWinner 
+
+      FROM 
+
+          results r 
+
+      JOIN 
+
+          designations d ON r.designationId = d.designationId 
+
+      WHERE 
+
+          r.electionId = 1;`; // Fixed electionId = 1
+
+
+  db.query(query, (err, results) => {
+
+      if (err) {
+
+          console.error('Error fetching results:', err);
+
+          return res.status(500).json({ error: 'Database query error' });
+
+      }
+      // Group results by designation and find winners
+
+      const groupedResults = results.reduce((acc, result) => {
+
+          const { post, candidateName, voteCount, isWinner } = result;
+
+
+          if (!acc[post]) {
+              acc[post] = {
+                  post,
+                  candidates: [],
+                  winner: null
+              };
+          }
+          acc[post].candidates.push({ candidateName, voteCount });
+          // Determine the winner
+
+          if (isWinner) {
+
+              acc[post].winner = { candidateName, voteCount };
+
+          }
+          return acc;
+
+      }, {});
+      res.json(Object.values(groupedResults)); // Send the grouped results as JSON
+  });
+});
+
 // Fetch the candidate name and position from database
 // In launch_election.js or server.js
 app.get('/candidate', (req, res) => {
