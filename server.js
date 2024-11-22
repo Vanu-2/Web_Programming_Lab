@@ -709,7 +709,7 @@ app.get("/candidatesWithPost", (req, res) => {
 FROM 
     candidate c
 LEFT JOIN 
-    designations d ON c.designationId = d.id
+    designations d ON c.designationId = d.designationId
 GROUP BY 
     c.candidateName, c.symbol;
   `;
@@ -785,6 +785,19 @@ app.post('/api/submitVote', (req, res) => {
       res.json({ success: true, message: 'Votes submitted successfully' });
   });
 });
+app.delete("/elections/:electionId", (req, res) => {
+  const electionId = req.params.electionId;
+  const query = "DELETE FROM elections WHERE electionId = ?";
+  
+  db.query(query, [electionId], (err, result) => {
+    if (err) {
+      console.error("Error deleting election:", err);
+      return res.status(500).send("Server error");
+    }
+    res.sendStatus(204); // No content to send back
+  });
+});
+
 
 
 // Start the server

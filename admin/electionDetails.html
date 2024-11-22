@@ -130,90 +130,104 @@
       });
         
         // Fetch election data and display it in the table
-        fetch("/elections") // Update this endpoint accordingly
-          .then((response) => response.json())
-          .then((data) => {
-            const electionList = document.getElementById("election-list");
-        
-            data.forEach((election) => {
-              const row = document.createElement("tr");
-              row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
-        
-              row.innerHTML = `
-                <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${election.electionName}</td>
-                <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${election.electionDate}</td>
-                <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${election.designations.join(", ")}</td>
-                <td class="px-6 py-4 border-b border-gray-200 text-gray-800">
-                  <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded">Edit</button>
-                  <button class="save-btn bg-green-500 text-white px-2 py-1 rounded hidden">Save</button>
-                </td>
-              `;
-        
-              const editBtn = row.querySelector(".edit-btn");
-              const saveBtn = row.querySelector(".save-btn");
-        
-              editBtn.addEventListener("click", () => {
-                row.querySelectorAll("td:not(:last-child)").forEach(cell => {
-                  cell.setAttribute("contenteditable", "true");
-                  cell.classList.add("bg-yellow-100");
-                });
-                editBtn.classList.add("hidden");
-                saveBtn.classList.remove("hidden");
-              });
-        
-              // Save edited data
-              saveBtn.addEventListener("click", () => {
-                const updatedData = {
-                  electionName: row.cells[0].textContent.trim(),
-                  electionDate: row.cells[1].textContent.trim(),
-                  designations: row.cells[2].textContent.trim().split(", ")
-                };
+        // Fetch election data and display it in the table
+fetch("/elections") // Update this endpoint accordingly
+  .then((response) => response.json())
+  .then((data) => {
+    const electionList = document.getElementById("election-list");
 
-                // Send updated data to the server
-                fetch(`/elections/${election.electionId}`, { // Use election.electionId here
-                  method: "PUT",
-                  headers: {
-                    "Content-Type": "application/json"
-                  },
-                  body: JSON.stringify(updatedData)
-                })
-                .then(response => response.json())
-                .then(updatedElection => {
-                  console.log("Update successful:", updatedElection);
+    data.forEach((election) => {
+      const row = document.createElement("tr");
+      row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
 
-                  // Display updated information
-                  row.cells[0].textContent = updatedData.electionName;
-                  row.cells[1].textContent = updatedData.electionDate;
-                  row.cells[2].textContent = updatedData.designations.join(", ");
+      row.innerHTML = `
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${election.electionName}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${election.electionDate}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${election.designations.join(", ")}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">
+          <button class="edit-btn bg-blue-500 text-white px-2 py-1 rounded">Edit</button>
+          <button class="save-btn bg-green-500 text-white px-2 py-1 rounded hidden">Save</button>
+          <button class="delete-btn bg-red-500 text-white px-2 py-1 rounded">Delete</button> <!-- Delete button -->
+        </td>
+      `;
 
-                  // Show success message
-                  const message = document.createElement("div");
-                  message.textContent = "Election updated successfully!";
-                  message.classList.add("bg-green-500", "text-white", "px-4", "py-2", "rounded", "fixed", "top-4", "right-4", "z-50");
-                  document.body.appendChild(message);
+      const editBtn = row.querySelector(".edit-btn");
+      const saveBtn = row.querySelector(".save-btn");
+      const deleteBtn = row.querySelector(".delete-btn");
 
-                  // Remove editable state and reset buttons
-                  row.querySelectorAll("td[contenteditable='true']").forEach(cell => {
-                    cell.setAttribute("contenteditable", "false");
-                    cell.classList.remove("bg-yellow-100");
-                  });
-                  saveBtn.classList.add("hidden");
-                  editBtn.classList.remove("hidden");
+      // Edit button logic
+      editBtn.addEventListener("click", () => {
+        row.querySelectorAll("td:not(:last-child)").forEach(cell => {
+          cell.setAttribute("contenteditable", "true");
+          cell.classList.add("bg-yellow-100");
+        });
+        editBtn.classList.add("hidden");
+        saveBtn.classList.remove("hidden");
+      });
 
-                  // Remove message after a short delay
-                  setTimeout(() => {
-                    document.body.removeChild(message);
-                  }, 2000);
-                })
-                .catch(error => {
-                  console.error("Error updating election:", error);
-                });
-              });
+      // Save button logic
+      saveBtn.addEventListener("click", () => {
+        const updatedData = {
+          electionName: row.cells[0].textContent.trim(),
+          electionDate: row.cells[1].textContent.trim(),
+          designations: row.cells[2].textContent.trim().split(", ")
+        };
 
-              electionList.appendChild(row);
-            });
+        // Send updated data to the server
+        fetch(`/elections/${election.electionId}`, { // Use election.electionId here
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify(updatedData)
+        })
+        .then(response => response.json())
+        .then(updatedElection => {
+          console.log("Update successful:", updatedElection);
+
+          // Display updated information
+          row.cells[0].textContent = updatedData.electionName;
+          row.cells[1].textContent = updatedData.electionDate;
+          row.cells[2].textContent = updatedData.designations.join(", ");
+
+          // Remove editable state and reset buttons
+          row.querySelectorAll("td[contenteditable='true']").forEach(cell => {
+            cell.setAttribute("contenteditable", "false");
+            cell.classList.remove("bg-yellow-100");
           });
-      
+          saveBtn.classList.add("hidden");
+          editBtn.classList.remove("hidden");
+        })
+        .catch(error => {
+          console.error("Error updating election:", error);
+        });
+      });
+
+      // Delete button logic
+      deleteBtn.addEventListener("click", () => {
+        if (confirm(`Are you sure you want to delete the election: ${election.electionName}?`)) {
+          // Send DELETE request to the backend
+          fetch(`/elections/${election.electionId}`, {
+            method: "DELETE",
+          })
+          .then((response) => {
+            if (response.ok) {
+              // Remove the row from the UI
+              electionList.removeChild(row);
+            } else {
+              console.error("Failed to delete election.");
+            }
+          })
+          .catch((error) => {
+            console.error("Error deleting election:", error);
+          });
+        }
+      });
+
+      electionList.appendChild(row);
+    });
+  });
+
     </script>
       
   </body>

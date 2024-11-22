@@ -132,30 +132,48 @@
       });
 
       // Fetch candidate data and display it in the table
-      fetch("/candidates") // Adjust this endpoint to match your server's setup
-        .then((response) => response.json())
-        .then((data) => {
-          const candidateList = document.getElementById("candidate-list");
+      fetch("/candidates")
+  .then((response) => response.json())
+  .then((data) => {
+    const candidateList = document.getElementById("candidate-list");
 
-          // Loop through the candidates and display their details in table rows
-          data.forEach((candidate) => {
-            const row = document.createElement("tr");
-            row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
+    // Loop through the candidates and display their details in table rows
+    data.forEach((candidate) => {
+      const row = document.createElement("tr");
+      row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
 
-            row.innerHTML = `
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.candidateName}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.c_email}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.symbol}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.electionId}</td>
-              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designationId}</td>
-            `;
+      row.innerHTML = `
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.candidateName}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.c_email}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">
+          ${candidate.symbol 
+            ? `<img src="data:image/png;base64,${candidate.symbol}" alt="Symbol" class="w-10 h-10 object-contain" />` 
+            : "No Symbol"}
+        </td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.electionId}</td>
+        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designationId}</td>
+      `;
 
-            candidateList.appendChild(row);
-          });
-        })
-        .catch((error) => {
-          console.error("Error fetching candidate data:", error);
-        });
+      candidateList.appendChild(row);
+    });
+  })
+  .catch((error) => {
+    console.error("Error fetching candidate data:", error);
+  });
+
+// Fetch the candidate count and voter count from the backend and update the HTML
+Promise.all([
+    fetch('/api/candidateCount').then(response => response.json())
+  ])
+    .then(([candidateData, voterData]) => {
+      document.getElementById('candidateCount').textContent = candidateData.count;// This should work if the ID matches
+    })
+    .catch(error => {
+      console.error('Error fetching counts:', error);
+      document.getElementById('candidateCount').textContent = 'Error';
+       // Handle error for voter count
+    });
+  
     </script>
   </body>
 </html>
