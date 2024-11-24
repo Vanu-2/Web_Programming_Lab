@@ -33,8 +33,11 @@
             </div>
             <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Log In</h1>
 
-            <!-- Show error message if login failed -->
-            <div id="errorMessage" class="mb-4 text-red-500 text-center hidden">
+            <!-- Error messages -->
+            <div id="pendingApprovalMessage" class="mb-4 text-yellow-500 text-center hidden">
+                Your registration is pending admin approval. Please wait.
+            </div>
+            <div id="invalidLoginMessage" class="mb-4 text-red-500 text-center hidden">
                 Invalid email or password. Please try again.
             </div>
 
@@ -62,12 +65,19 @@
     </div>
 
     <script>
-        // Check URL for error message and display if needed
-        const urlParams = new URLSearchParams(window.location.search);
-        if (urlParams.has('error') && urlParams.get('error') === 'invalid') {
-            document.getElementById('errorMessage').classList.remove('hidden');
-        }
+        // Handle error messages dynamically based on the URL
+        document.addEventListener("DOMContentLoaded", () => {
+            const params = new URLSearchParams(window.location.search);
+            const error = params.get("error");
 
+            if (error === "pendingApproval") {
+                document.getElementById("pendingApprovalMessage").classList.remove("hidden");
+            } else if (error === "invalid") {
+                document.getElementById("invalidLoginMessage").classList.remove("hidden");
+            }
+        });
+
+        // Toggle password visibility
         function togglePasswordVisibility() {
             const passwordInput = document.getElementById("password");
             const type = passwordInput.type === "password" ? "text" : "password";

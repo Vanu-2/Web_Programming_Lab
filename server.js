@@ -2,6 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const mysql = require("mysql");
 const multer = require("multer");
+
 const fs = require("fs");
 const csvParser = require("csv-parser"); // Install this package for parsing CSV files
 const session = require("express-session");
@@ -78,13 +79,34 @@ app.post("/registration_form", (req, res) => {
 });
 
 // Start login page backend
+// New Route: Approve Voter
+app.post("/approve_voter", (req, res) => {
+  const { voterId } = req.body;
+
+  // Update the voter's status to 'approved'
+  const query = "UPDATE voter SET status = 'approved' WHERE v_email = ?";
+  db.query(query, [voterId], (err, result) => {
+    if (err) {
+      console.error("Error updating voter status:", err);
+      return res.status(500).send("Failed to approve voter.");
+    }
+
+    if (result.affectedRows > 0) {
+      res.send("Voter approved successfully.");
+    } else {
+      res.status(404).send("Voter not found.");
+    }
+  });
+});
+
+// Update Login Logic
 app.post("/login", (req, res) => {
   const { email, password } = req.body;
 
   console.log("Received login request for email:", email);
 
-  // Check if user is a voter
-  const voterQuery = "SELECT * FROM voter WHERE v_email = ? AND password = ?";
+  // Check if user is a voter and approved
+  const voterQuery = "SELECT * FROM voter WHERE v_email = ? AND password = ? AND status = 'approved'";
   db.query(voterQuery, [email, password], (err, voterResults) => {
     if (err) {
       console.error("Error querying the database for voter:", err);
@@ -92,13 +114,14 @@ app.post("/login", (req, res) => {
     }
 
     if (voterResults.length > 0) {
-      console.log("User found in voter table:", email);
+      console.log("Approved voter found:", email);
       req.session.userEmail = email;
       // Voter exists, redirect to voter dashboard
       return res.redirect("/voter/voter_dashboard.html");
     }
+    
 
-    console.log("User not found in voter table:", email);
+    console.log("User not found or not approved in voter table:", email);
 
     // Check if user is a candidate
     const candidateQuery = "SELECT * FROM candidate WHERE c_email = ? AND password = ?";
@@ -140,6 +163,20 @@ app.post("/login", (req, res) => {
     });
   });
 });
+
+
+// Fetch pending voter registrations
+app.get("/get_pending_voters", (req, res) => {
+  const query = "SELECT * FROM voter WHERE status = 'pending'";
+  db.query(query, (err, results) => {
+    if (err) {
+      console.error("Error fetching pending voters:", err);
+      return res.status(500).json({ error: "Failed to fetch pending voters" });
+    }
+    res.json(results); // Send the fetched voters as a JSON response
+  });
+});
+
 
 // End of login page backend
 
@@ -703,6 +740,7 @@ app.delete("/voter/:email", (req, res) => {
 app.get("/candidatesWithPost", (req, res) => {
   const query = `
     SELECT 
+    c.id,
     c.candidateName, 
     c.symbol, 
     GROUP_CONCAT(d.designationName) AS designations
@@ -798,6 +836,41 @@ app.delete("/elections/:electionId", (req, res) => {
   });
 });
 
+// Update candidate
+app.post("/updateCandidate", (req, res) => {
+  const { id, candidateName, symbol } = req.body;
+  
+  console.log("Received data for update: ", { id, candidateName, symbol }); // Add logging
+  
+  const query = "UPDATE candidate SET candidateName = ?, symbol = ? WHERE id = ?";
+  
+  db.query(query, [candidateName, symbol, id], (err, result) => {
+    if (err) {
+      console.error("Error updating candidate:", err);
+      return res.status(500).send(err); // Log the error
+    }
+    console.log("Update successful:", result); // Log success
+    res.json({ success: true });
+  });
+});
+
+// Delete candidate
+app.post("/deleteCandidate", (req, res) => {
+  const { id } = req.body;
+
+  console.log("Received data for delete: ", { id }); // Add logging
+
+  const query = "DELETE FROM candidate WHERE id = ?";
+
+  db.query(query, [id], (err, result) => {
+    if (err) {
+      console.error("Error deleting candidate:", err);
+      return res.status(500).send(err); // Log the error
+    }
+    console.log("Delete successful:", result); // Log success
+    res.json({ success: true });
+  });
+});
 
 
 // Start the server

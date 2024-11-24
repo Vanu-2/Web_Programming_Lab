@@ -148,32 +148,100 @@
             console.error("Error fetching user data:", error);
           });
       });
+        
+    
+
         document.addEventListener("DOMContentLoaded", () => {
-    fetch("/candidatesWithPost")
-        .then(response => response.json())
-        .then(candidates => {
-            const tableBody = document.getElementById("candidateTableBody");
+            fetch("/candidatesWithPost")
+                .then(response => response.json())
+                .then(candidates => {
+                    const tableBody = document.getElementById("candidateTableBody");
 
-            candidates.forEach(candidate => {
-                const row = document.createElement("tr");
-                row.classList.add("border-t");
+                    candidates.forEach(candidate => {
+                        const row = document.createElement("tr");
+                        row.classList.add("border-t");
 
-                row.innerHTML = `
-                    <td class="py-3 px-4">${candidate.candidateName}</td>
-                    <td class="py-3 px-4">${candidate.symbol}</td>
-                    <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designations.join(", ")}</td>
-                    <td class="py-3 px-4">
-                        <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700">Block</button>
-                        <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700">Delete</button>
-                    </td>
-                `;
+                        row.innerHTML = `
+                            <td class="py-3 px-4">
+                                <span class="candidate-name">${candidate.candidateName}</span>
+                                <input type="text" class="edit-candidate-name hidden border border-gray-300 rounded px-2 py-1" value="${candidate.candidateName}" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="candidate-symbol">${candidate.symbol}</span>
+                                <input type="text" class="edit-candidate-symbol hidden border border-gray-300 rounded px-2 py-1" value="${candidate.symbol}" />
+                            </td>
+                            <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designations.join(", ")}</td>
+                            <td class="py-3 px-4">
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700 update-btn">Update</button>
+                                <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 hidden save-btn">Save</button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 delete-btn">Delete</button>
+                            </td>
+                        `;
 
-                tableBody.appendChild(row);
-            });
-        })
-        .catch(error => console.error("Error fetching candidate data:", error));
-});
+                        tableBody.appendChild(row);
 
+                        const updateBtn = row.querySelector(".update-btn");
+                        const saveBtn = row.querySelector(".save-btn");
+                        const deleteBtn = row.querySelector(".delete-btn");
+
+                        const nameSpan = row.querySelector(".candidate-name");
+                        const symbolSpan = row.querySelector(".candidate-symbol");
+                        const nameInput = row.querySelector(".edit-candidate-name");
+                        const symbolInput = row.querySelector(".edit-candidate-symbol");
+
+                        updateBtn.addEventListener("click", () => {
+                            nameSpan.classList.add("hidden");
+                            symbolSpan.classList.add("hidden");
+                            nameInput.classList.remove("hidden");
+                            symbolInput.classList.remove("hidden");
+                            updateBtn.classList.add("hidden");
+                            saveBtn.classList.remove("hidden");
+                        });
+
+                        saveBtn.addEventListener("click", () => {
+                            const updatedName = nameInput.value;
+                            const updatedSymbol = symbolInput.value;
+
+                            fetch("/updateCandidate", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ id: candidate.id, candidateName: updatedName, symbol: updatedSymbol })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        nameSpan.textContent = updatedName;
+                                        symbolSpan.textContent = updatedSymbol;
+                                        nameSpan.classList.remove("hidden");
+                                        symbolSpan.classList.remove("hidden");
+                                        nameInput.classList.add("hidden");
+                                        symbolInput.classList.add("hidden");
+                                        updateBtn.classList.remove("hidden");
+                                        saveBtn.classList.add("hidden");
+                                    } else {
+                                        alert("Update failed.");
+                                    }
+                                });
+                        });
+
+                        deleteBtn.addEventListener("click", () => {
+                            if (confirm(`Are you sure to delete ${candidate.candidateName}?`)) {
+                                fetch("/deleteCandidate", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ id: candidate.id })
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) row.remove();
+                                        else alert("Delete failed.");
+                                    });
+                            }
+                        });
+                    });
+                });
+        });
+    
     </script>
 
 </body>
