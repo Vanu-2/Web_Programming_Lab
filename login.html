@@ -6,61 +6,80 @@
     <title>Login Page</title>
     <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet">
     <style>
-        .background-image {
-            background-image: url("oip.jpeg");
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            height: 100vh;
-        }
-        .password-container {
-            position: relative;
+        body {
+            background-color: #003366; /* Lighter Navy Blue */
         }
         .toggle-password {
             position: absolute;
-            right: 10px;
+            right: 14px;
             top: 50%;
             transform: translateY(-50%);
             cursor: pointer;
+            color: #6b7280;
+            font-size: 1.2rem;
         }
     </style>
 </head>
 <body>
-    <div class="background-image flex items-center justify-center">
-        <div class="bg-white bg-opacity-75 p-8 rounded-lg shadow-md w-full max-w-md">
-            <div class="text-center mb-6">
-                <img src="l3.png" alt="Logo" class="h-10 mx-auto" />
-            </div>
-            <h1 class="text-3xl font-bold text-gray-800 mb-6 text-center">Log In</h1>
+    <div class="flex h-screen">
+        <!-- Left Side: Video -->
+        <div class="w-1/2 flex items-center justify-center">
+            <video autoplay loop muted class="w-4/5 rounded-lg shadow-lg">
+                <source src="Voting.mp4" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
 
-            <!-- Error messages -->
-            <div id="pendingApprovalMessage" class="mb-4 text-yellow-500 text-center hidden">
-                Your registration is pending admin approval. Please wait.
-            </div>
-            <div id="invalidLoginMessage" class="mb-4 text-red-500 text-center hidden">
-                Invalid email or password. Please try again.
-            </div>
+        <!-- Right Side: Login Form -->
+        <div class="w-1/2 flex items-center justify-center">
+            <div class="bg-white bg-opacity-95 p-8 rounded-2xl shadow-lg w-full max-w-lg">
+                <div class="text-center mb-6">
+                    <img src="l3.png" alt="Logo" class="h-14 mx-auto" />
+                </div>
+                <h1 class="text-4xl font-extrabold text-gray-800 mb-8 text-center">Welcome Back</h1>
 
-            <form action="/login" method="POST">
-                <div class="mb-4">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="email">Email</label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" name="email" required />
+                <!-- Error messages -->
+                <div id="pendingApprovalMessage" class="mb-4 text-yellow-500 text-center hidden">
+                    Your registration is pending admin approval. Please wait.
+                </div>
+                <div id="invalidLoginMessage" class="mb-4 text-red-500 text-center hidden">
+                    Invalid email or password. Please try again.
                 </div>
 
-                <div class="mb-6 password-container">
-                    <label class="block text-gray-700 text-sm font-bold mb-2" for="password">Password</label>
-                    <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline" id="password" type="password" name="password" required />
-                    <span class="toggle-password" onclick="togglePasswordVisibility()">👁️</span>
-                </div>
+                <form action="/login" method="POST">
+                    <div class="mb-5">
+                        <label class="block text-gray-700 text-sm font-semibold mb-2" for="email">Email Address</label>
+                        <input class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" id="email" type="email" name="email" placeholder="Enter your email" required />
+                    </div>
 
-                <div class="flex justify-center">
-                    <button class="bg-blue-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="submit">Log In</button>
-                </div>
+                    <div class="mb-6 relative">
+                        <label class="block text-gray-700 text-sm font-semibold mb-2" for="password">Password</label>
+                        <div class="relative">
+                            <input 
+                                class="shadow appearance-none border rounded-lg w-full py-3 px-4 text-gray-700 leading-tight focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" 
+                                id="password" 
+                                type="password" 
+                                name="password" 
+                                placeholder="Enter your password" 
+                                required 
+                            />
+                            <span 
+                                class="toggle-password absolute right-4 top-1/2 transform -translate-y-1/2 text-gray-600 cursor-pointer" 
+                                onclick="togglePasswordVisibility()">👁</span>
+                        </div>
+                    </div>
+                    
+                    <div class="flex justify-center">
+                        <button class="bg-gradient-to-r from-blue-500 to-green-500 hover:from-green-500 hover:to-blue-500 text-white font-bold py-3 px-6 rounded-lg shadow-lg transition duration-300 ease-in-out transform hover:scale-105" type="submit">
+                            Log In
+                        </button>
+                    </div>
 
-                <p class="mt-4 text-center">
-                    Not a user? <a href="registration_form.html" class="text-blue-500">Register</a>
-                </p>
-            </form>
+                    <p class="mt-6 text-center text-gray-600">
+                        Not a user? <a href="registration_form.html" class="text-blue-500 hover:underline">Register Now</a>
+                    </p>
+                </form>
+            </div>
         </div>
     </div>
 

@@ -25,7 +25,7 @@
                 <a href="Vote.html" class="block">Participate Election</a>
             </li>
             <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="view_result.html" class="block">View result</a>
+                <a href="view_result.html" class="block">View Result</a>
             </li>
         </ul>
     </div>
@@ -61,7 +61,7 @@
         <!-- Election Voting Details -->
         <div class="bg-white p-6 rounded shadow space-y-6">
             <div id="election-details" class="space-y-6"></div>
-            <button id="submit-votes" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded">Submit Votes</button>
+            <button id="submit-votes" class="mt-4 bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Submit Votes</button>
         </div>
     </div>
 
@@ -99,77 +99,69 @@
         });
 
         // Fetch election details
-async function fetchElectionDetails() {
-    try {
-        const response = await fetch('http://localhost:3000/api/election_details');
-        if (!response.ok) {
-            throw new Error(`HTTP error! Status: ${response.status}`);
-        }
-
-        const data = await response.json();
-        const electionDetailsDiv = document.getElementById('election-details');
-
-        // Clear existing content before appending new data
-        electionDetailsDiv.innerHTML = '';
-
-        if (data.designations && data.designations.length > 0) {
-            data.designations.forEach(designation => {
-                // Create a container for each designation
-                const designationDiv = document.createElement('div');
-                designationDiv.className = "bg-gray-100 p-4 rounded shadow mb-4";
-                designationDiv.innerHTML = `<h2 class="text-xl font-semibold mb-2">${designation.designationName}</h2>`;
-
-                if (designation.candidate && designation.candidate.length > 0) {
-                    designation.candidate.forEach(candidate => {
-                        // Create a container for each candidate
-                        const candidateDiv = document.createElement('div');
-                        candidateDiv.className = "flex items-center justify-between py-2 border-b";
-
-                        const symbolHTML = candidate.symbol
-                            ? `<img src="${candidate.symbol}" alt="Symbol" class="inline-block w-6 h-6">`
-                            : `<span class="text-gray-500">No Symbol</span>`;
-
-                        candidateDiv.innerHTML = `
-                            <label class="flex items-center">
-                                <input type="checkbox" value="${candidate.email}" class="mr-2">
-                                <span>${candidate.candidateName} - ${symbolHTML}</span>
-                            </label>
-                        `;
-
-                        designationDiv.appendChild(candidateDiv);
-                    });
-                } else {
-                    designationDiv.innerHTML += `<p class="text-gray-500">No candidates available for this designation.</p>`;
+        async function fetchElectionDetails() {
+            try {
+                const response = await fetch('/api/election_details');
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
                 }
 
-                electionDetailsDiv.appendChild(designationDiv);
-            });
-        } else {
-            electionDetailsDiv.innerHTML = '<p class="text-gray-500">No designations found.</p>';
-        }
-    } catch (error) {
-        console.error('Error fetching election details:', error);
-        const electionDetailsDiv = document.getElementById('election-details');
-        electionDetailsDiv.innerHTML = '<p class="text-red-500">Failed to load election details. Please try again later.</p>';
-    }
-}
+                const data = await response.json();
+                const electionDetailsDiv = document.getElementById('election-details');
+
+                electionDetailsDiv.innerHTML = ''; // Clear previous content
+
+                if (data.designations && data.designations.length > 0) {
+                    data.designations.forEach(designation => {
+                        const designationDiv = document.createElement('div');
+                        designationDiv.className = "bg-gray-100 p-4 rounded shadow mb-4";
+                        designationDiv.innerHTML = `<h2 class="text-xl font-semibold mb-2">${designation.designationName}</h2>`;
+
+                        if (designation.candidate && designation.candidate.length > 0) {
+                            designation.candidate.forEach(candidate => {
+    const candidateDiv = document.createElement('div');
+    candidateDiv.className = "flex items-center justify-between py-4 border-b"; // Adjusted padding for better spacing
+
+    const symbolHTML = candidate.symbol
+        ? `<img src="${candidate.symbol}" alt="Symbol" class="inline-block w-12 h-12 mr-4">` // Increased width and height of the symbol
+        : `<span class="text-gray-500">No Symbol</span>`;
+
+    candidateDiv.innerHTML = `
+        <label class="flex items-center">
+            <input type="checkbox" value="${candidate.email}" class="mr-4 w-6 h-6"> <!-- Larger checkbox -->
+            ${symbolHTML}
+            <span class="text-lg font-semibold">${candidate.candidateName}</span> <!-- Increased font size and weight -->
+        </label>
+    `;
+    designationDiv.appendChild(candidateDiv);
 
 
-        // Submit votes event
-        document.getElementById('submit-votes').addEventListener('click', async () => {
-            const selectedCandidates = Array.from(document.querySelectorAll('input[type="checkbox"]:checked')).map(checkbox => checkbox.value);
+                            });
+                        } else {
+                            designationDiv.innerHTML += `<p class="text-gray-500">No candidates available for this designation.</p>`;
+                        }
 
-            if (selectedCandidates.length === 0) {
-                alert('Please select at least one candidate to vote for.');
-                return;
+                        electionDetailsDiv.appendChild(designationDiv);
+                    });
+                } else {
+                    electionDetailsDiv.innerHTML = '<p class="text-gray-500">No designations found.</p>';
+                }
+            } catch (error) {
+                console.error('Error fetching election details:', error);
+                document.getElementById('election-details').innerHTML = '<p class="text-red-500">Failed to load election details.</p>';
             }
+        }
+
+        // Submit votes
+        document.getElementById('submit-votes').addEventListener('click', async () => {
+            const selectedCandidates = Array.from(
+                document.querySelectorAll('input[type="checkbox"]:checked')
+            ).map(checkbox => checkbox.value);
 
             try {
-                const response = await fetch('http://localhost:3000/api/submit_votes', {
+                const response = await fetch('/api/submit_votes', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ candidates: selectedCandidates })
                 });
 
@@ -177,7 +169,7 @@ async function fetchElectionDetails() {
                 if (response.ok) {
                     alert(result.message);
                 } else {
-                    alert(result.error);
+                    alert(result.error || 'An error occurred.');
                 }
             } catch (error) {
                 console.error('Error submitting votes:', error);
@@ -185,7 +177,6 @@ async function fetchElectionDetails() {
             }
         });
 
-        // Load election details on page load
         fetchElectionDetails();
     </script>
 </body>
