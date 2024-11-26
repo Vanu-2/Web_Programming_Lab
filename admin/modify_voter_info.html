@@ -3,106 +3,54 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Approve Voter Registration</title>
+    <title>Modify Voter Information</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        .hover-custom-blue:hover {
-            background-color: #66cc99;
-        }
-    </style>
 </head>
 
-<body class="bg-blue-200 font-sans flex flex-col min-h-screen">
+<body class="bg-gray-100 font-sans flex flex-col min-h-screen">
 
     <!-- Sidebar -->
     <div class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto">
-        <div class="px-11 py-2 w-full flex justify-center">
-            <img src="l3.png" alt="Logo" class="w-full h-auto w-50 object-contain" />
-        </div>
-        <ul id="sidebarMenu" class="mt-8">
-            <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="admin_dashboard.html" class="block">Dashboard</a>
-            </li>
-            <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="approve_voter.html" class="block">Approve Voter Registration</a>
-            </li>
-            <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="modify_voter_info.html" class="block">Modify Voter Information</a>
-            </li>
-            <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="modify_candidate_list.html" class="block">Modify Candidate List</a>
-            </li>
-            <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="result_publish.html" class="block">Publish result</a>
-            </li>
-        </ul>
-    </div>
+      <div class="px-11 py-2 w-full flex justify-center">
+          <img src="l3.png" alt="Logo" class="w-full h-auto w-50 object-contain" />
+      </div>
+      <ul id="sidebarMenu" class="mt-8">
+          <li class="px-5 py-3 hover:bg-gray-400">
+              <a href="admin_dashboard.html" class="block">Dashboard</a>
+          </li>
+          <li class="px-5 py-3 hover:bg-gray-400">
+              <a href="approve_voter.html" class="block">Approve Voter Registration</a>
+          </li>
+          <li class="px-5 py-3 hover:bg-gray-400">
+              <a href="modify_voter_info.html" class="block">Modify Voter Information</a>
+          </li>
+          <li class="px-5 py-3 hover:bg-gray-400">
+              <a href="modify_candidate_list.html" class="block">Modify Candidate List</a>
+          </li>
+          <li class="px-5 py-3 hover:bg-gray-400">
+              <a href="result_publish.html" class="block">Publish result</a>
+          </li>
+      </ul>
+  </div>
 
     <!-- Main Content -->
     <div class="ml-64 p-8 flex-grow">
-
-        <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Modify Voter Information</h1>
-            <div class="flex items-center space-x-4">
-
-                <!-- Profile with dropdown -->
-                <div class="relative">
-                    <button id="profileBtn" class="focus:outline-none">
-                      <img
-                        src="l2.png"
-                        alt="Profile"
-                        class="w-10 h-10 rounded-full cursor-pointer"
-                      />
-                    </button>
-        
-                    <!-- Dropdown Menu -->
-                    <div
-                      id="profileDropdown"
-                      class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
-                    >
-                      <p class="block px-4 py-2 text-gray-800">
-                        <strong>Email:</strong> <span id="user-email">Loading...</span>
-                      </p>
-                      <p class="block px-4 py-2 text-gray-800">
-                        <strong>Username:</strong> <span id="user-name">Loading...</span>
-                      </p>
-                   
-                      <form action="/logout" method="post">
-                        <button
-                          type="submit"
-                          class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200"
-                        >
-                          Logout
-                        </button>
-                      </form>
-                      
-                    </div>
-                  </div>
-            </div>
-        </div>
-
-        <!-- Table Content -->
-        <div class="bg-white shadow-lg rounded-lg p-6">
-            <h2 class="text-2xl font-semibold mb-4">Modify Voter Information</h2>
-            <table class="min-w-full bg-white rounded-lg shadow">
-                <thead class="bg-gray-200">
-                    <tr>
-                        <th class="py-2 px-4 text-left">No.</th>
-                        <th class="py-2 px-4 text-left">Voter Name</th>
-                        <th class="py-2 px-4 text-left">Email</th>
-                        <th class="py-2 px-4 text-left">Date of Birth</th>
-                        <th class="py-2 px-4 text-left">Address</th>
-                        <th class="py-2 px-4 text-left">Actions</th>
-                    </tr>
-                </thead>
-                <tbody id="voterTableBody">
-                    <!-- Voter data will be populated here -->
-                </tbody>
-            </table>
-        </div>
-
+        <h1 class="text-3xl font-bold mb-6">Modify Voter Information</h1>
+        <table class="min-w-full bg-white rounded-lg shadow">
+            <thead class="bg-gray-200">
+                <tr>
+                    <th class="py-3 px-4 text-left">Username</th>
+                    <th class="py-3 px-4 text-left">Email</th>
+                    <th class="py-3 px-4 text-left">Address</th>
+                    <th class="py-3 px-4 text-left">Status</th>
+                    <th class="py-3 px-4 text-left">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="voterTableBody">
+                <!-- Voter data will be dynamically inserted here -->
+            </tbody>
+        </table>
     </div>
 
     <!-- Footer -->
@@ -112,80 +60,145 @@
         </div>
     </footer>
 
-    <!-- Script for Profile Dropdown and Data Fetching -->
     <script>
-        // Profile dropdown toggle
-        const profileBtn = document.getElementById("profileBtn");
-      const profileDropdown = document.getElementById("profileDropdown");
+        // Fetch voters and display in table
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("/getVoters")
+                .then(response => response.json())
+                .then(voters => {
+                    const tableBody = document.getElementById("voterTableBody");
 
-      profileBtn.addEventListener("click", () => {
-        profileDropdown.classList.toggle("hidden");
-      });
+                    voters.forEach(voter => {
+                        const row = document.createElement("tr");
+                        row.classList.add("border-t");
 
-      window.addEventListener("click", (e) => {
-        if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-          profileDropdown.classList.add("hidden");
-        }
-      });
+                        row.innerHTML = `
+                            <td class="py-3 px-4">
+                                <span class="voter-username">${voter.username}</span>
+                                <input type="text" class="edit-voter-username hidden border border-gray-300 rounded px-2 py-1" value="${voter.username}" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="voter-email">${voter.v_email}</span>
+                                <input type="email" class="edit-voter-email hidden border border-gray-300 rounded px-2 py-1" value="${voter.v_email}" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="voter-address">${voter.address}</span>
+                                <input type="text" class="edit-voter-address hidden border border-gray-300 rounded px-2 py-1" value="${voter.address}" />
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="voter-status">${voter.status}</span>
+                                <select class="edit-voter-status hidden border border-gray-300 rounded px-2 py-1">
+                                    <option value="pending" ${voter.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="approved" ${voter.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                </select>
+                            </td>
+                            <td class="py-3 px-4">
+                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700 update-btn">Update</button>
+                                <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 hidden save-btn">Save</button>
+                                <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 delete-btn">Delete</button>
+                            </td>
+                        `;
 
-      // Fetch user data and populate fields
-      document.addEventListener("DOMContentLoaded", () => {
-        fetch("/getUserData")
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch user data");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            document.getElementById("user-email").textContent = data.email || "N/A";
-            document.getElementById("user-name").textContent = data.username || "N/A";
-          })
-          .catch((error) => {
-            console.error("Error fetching user data:", error);
-          });
-      });
+                        tableBody.appendChild(row);
 
-        // Fetch voter data
-        async function fetchVoters() {
-            const response = await fetch('/voter');
-            const voters = await response.json();
-            const voterTableBody = document.getElementById('voterTableBody');
-            voterTableBody.innerHTML = '';
+                        const updateBtn = row.querySelector(".update-btn");
+                        const saveBtn = row.querySelector(".save-btn");
+                        const deleteBtn = row.querySelector(".delete-btn");
 
-            voters.forEach((voter, index) => {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td class="py-2 px-4">${index + 1}</td>
-                    <td class="py-2 px-4">${voter.username}</td>
-                    <td class="py-2 px-4">${voter.v_email}</td>
-                    <td class="py-2 px-4">${voter.dateOfBirth}</td>
-                    <td class="py-2 px-4">${voter.address}</td>
-                    <td class="py-2 px-4">
-                        <button onclick="updateVoter('${voter.v_email}')" class="bg-yellow-500 text-white py-1 px-2 rounded">Update</button>
-                        <button onclick="deleteVoter('${voter.v_email}')" class="bg-red-500 text-white py-1 px-2 rounded">Delete</button>
-                    </td>
-                `;
-                voterTableBody.appendChild(row);
-            });
-        }
+                        const usernameSpan = row.querySelector(".voter-username");
+                        const emailSpan = row.querySelector(".voter-email");
+                        const addressSpan = row.querySelector(".voter-address");
+                        const statusSpan = row.querySelector(".voter-status");
 
-        // Voter actions
-        async function updateVoter(email) {
-            alert(`Update voter with email: ${email}`);
-        }
+                        const usernameInput = row.querySelector(".edit-voter-username");
+                        const emailInput = row.querySelector(".edit-voter-email");
+                        const addressInput = row.querySelector(".edit-voter-address");
+                        const statusInput = row.querySelector(".edit-voter-status");
 
-        async function deleteVoter(email) {
-            if (confirm(`Are you sure you want to delete voter with email: ${email}?`)) {
-                const response = await fetch(`/voter/${email}`, { method: 'DELETE' });
-                if (response.ok) fetchVoters();
-                else alert('Error deleting voter');
-            }
-        }
+                        updateBtn.addEventListener("click", () => {
+                            // Hide the span and show the input fields
+                            usernameSpan.classList.add("hidden");
+                            emailSpan.classList.add("hidden");
+                            addressSpan.classList.add("hidden");
+                            statusSpan.classList.add("hidden");
 
-        window.onload = fetchVoters;
+                            usernameInput.classList.remove("hidden");
+                            emailInput.classList.remove("hidden");
+                            addressInput.classList.remove("hidden");
+                            statusInput.classList.remove("hidden");
+
+                            // Show save button, hide update button
+                            updateBtn.classList.add("hidden");
+                            saveBtn.classList.remove("hidden");
+                        });
+
+                        saveBtn.addEventListener("click", () => {
+                            const updatedUsername = usernameInput.value;
+                            const updatedEmail = emailInput.value;
+                            const updatedAddress = addressInput.value;
+                            const updatedStatus = statusInput.value;
+
+                            fetch("/updateVoter", {
+                                method: "POST",
+                                headers: { "Content-Type": "application/json" },
+                                body: JSON.stringify({ 
+                                    v_email: voter.v_email,
+                                    username: updatedUsername,
+                                    v_email: updatedEmail,
+                                    address: updatedAddress,
+                                    status: updatedStatus
+                                })
+                            })
+                                .then(response => response.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        // Update the displayed values
+                                        usernameSpan.textContent = updatedUsername;
+                                        emailSpan.textContent = updatedEmail;
+                                        addressSpan.textContent = updatedAddress;
+                                        statusSpan.textContent = updatedStatus;
+
+                                        // Hide input fields, show the updated values
+                                        usernameSpan.classList.remove("hidden");
+                                        emailSpan.classList.remove("hidden");
+                                        addressSpan.classList.remove("hidden");
+                                        statusSpan.classList.remove("hidden");
+
+                                        usernameInput.classList.add("hidden");
+                                        emailInput.classList.add("hidden");
+                                        addressInput.classList.add("hidden");
+                                        statusInput.classList.add("hidden");
+
+                                        // Show update button, hide save button
+                                        updateBtn.classList.remove("hidden");
+                                        saveBtn.classList.add("hidden");
+                                    } else {
+                                        alert("Update failed.");
+                                    }
+                                });
+                        });
+
+                        deleteBtn.addEventListener("click", () => {
+                            if (confirm(`Are you sure to delete ${voter.username}?`)) {
+                                fetch("/deleteVoter", {
+                                    method: "POST",
+                                    headers: { "Content-Type": "application/json" },
+                                    body: JSON.stringify({ v_email: voter.v_email })
+                                })
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.success) {
+                                            row.remove();
+                                        } else {
+                                            alert("Failed to delete voter.");
+                                        }
+                                    });
+                            }
+                        });
+                    });
+                });
+        });
     </script>
-
 </body>
 
 </html>

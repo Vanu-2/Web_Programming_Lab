@@ -95,8 +95,8 @@ app.post("/approve_voter", (req, res) => {
       res.send("Voter approved successfully.");
     } else {
       res.status(404).send("Voter not found.");
-    }
-  });
+    }
+  });
 });
 
 // Update Login Logic
@@ -800,18 +800,69 @@ app.put("/elections/:id", (req, res) => {
     });
   });
 });
-
-
-
-app.delete("/voter/:email", (req, res) => {
-  const email = req.params.email;
-  const query = "DELETE FROM voter WHERE v_email = ?";
-  db.query(query, [email], (err, result) => {
+app.get("/get_pending_voters", (req, res) => {
+  const query = "SELECT * FROM voter WHERE status = 'pending'";
+  db.query(query, (err, results) => {
     if (err) {
-      console.error("Error deleting voter:", err);
-      return res.status(500).send("Server error");
+      console.error("Error fetching pending voters:", err);
+      return res.status(500).json({ error: "Failed to fetch pending voters" });
     }
-    res.sendStatus(204); // No content to send back
+    res.json(results); // Send the fetched voters as a JSON response
+  });
+});
+
+
+app.get('/getVoters', (req, res) => {
+  db.query('SELECT * FROM voter', (err, results) => {
+    if (err) {
+      res.status(500).json({ error: 'Database query failed' });
+      return;
+    }
+    res.json(results);
+  });
+});
+
+// Update voter details
+app.post('/updateVoter', (req, res) => {
+  const { v_email, username, address, status } = req.body;
+
+  // Basic input validation
+  if (!v_email || !username || !address || !status) {
+    return res.status(400).json({ error: 'All fields except dateOfBirth are required' });
+  }
+
+  // Query to update voter information without changing dateOfBirth
+  const updateQuery = `
+    UPDATE voter 
+    SET username = ?, address = ?, status = ? 
+    WHERE v_email = ?`;
+
+  db.query(updateQuery, [username, address, status, v_email], (err, results) => {
+    if (err) {
+      console.error('Database query failed', err);  // Log the error for debugging
+      return res.status(500).json({ error: 'Database query failed' });
+    }
+    
+    if (results.affectedRows === 0) {
+      return res.status(404).json({ error: 'Voter not found' });
+    }
+
+    res.json({ success: true });
+  });
+});
+
+// Delete voter record
+app.post('/deleteVoter', (req, res) => {
+  const { v_email } = req.body;
+
+  const deleteQuery = 'DELETE FROM voter WHERE v_email = ?';
+
+  db.query(deleteQuery, [v_email], (err, results) => {
+    if (err) {
+      res.status(500).json({ error: 'Database query failed' });
+      return;
+    }
+    res.json({ success: true });
   });
 });
 
@@ -821,7 +872,7 @@ app.get("/candidatesWithPost", (req, res) => {
     SELECT 
     c.id,
     c.candidateName, 
-    c.symbol, 
+    c.c_email, 
     GROUP_CONCAT(d.designationName) AS designations
 FROM 
     candidate c
@@ -917,19 +968,18 @@ app.delete("/elections/:electionId", (req, res) => {
 
 // Update candidate
 app.post("/updateCandidate", (req, res) => {
-  const { id, candidateName, symbol } = req.body;
-  
-  console.log("Received data for update: ", { id, candidateName, symbol }); // Add logging
-  
-  const query = "UPDATE candidate SET candidateName = ?, symbol = ? WHERE id = ?";
-  
-  db.query(query, [candidateName, symbol, id], (err, result) => {
-    if (err) {
-      console.error("Error updating candidate:", err);
-      return res.status(500).send(err); // Log the error
-    }
-    console.log("Update successful:", result); // Log success
-    res.json({ success: true });
+  const { id, candidateName, c_email } = req.body;
+  const query = `
+      UPDATE candidate 
+      SET candidateName = ?, c_email = ? 
+      WHERE id = ?;
+  `;
+  db.query(query, [candidateName, c_email, id], (err, results) => {
+      if (err) {
+          console.error("Error updating candidate:", err);
+          return res.status(500).json({ error: "Failed to update candidate." });
+      }
+      res.json({ id, candidateName, c_email });
   });
 });
 
