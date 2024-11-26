@@ -283,7 +283,7 @@ app.post('/api/submit_votes', (req, res) => {
               // Check if candidates array is empty
               if (candidates.length === 0) {
                   // Insert votes for all candidates with is_vote = 0
-                  const allCandidatesQuery = 'SELECT c_email FROM candidate';
+                  const allCandidatesQuery = 'SELECT id FROM candidate';
                   db.query(allCandidatesQuery, (err, candidateResults) => {
                       if (err) {
                           console.error('Database error:', err);
@@ -291,8 +291,8 @@ app.post('/api/submit_votes', (req, res) => {
                       }
 
                       const insertPromises = candidateResults.map((candidate) => new Promise((resolve, reject) => {
-                          const insertQuery = 'INSERT INTO vote (c_email, v_email, BallotNo, is_vote) VALUES (?, ?, ?, 0)';
-                          db.query(insertQuery, [candidate.c_email, voterEmail, nextBallotNo], (err) => {
+                          const insertQuery = 'INSERT INTO vote (candidate_id, v_email, BallotNo, is_vote) VALUES (?, ?, ?, 0)';
+                          db.query(insertQuery, [candidate.id, voterEmail, nextBallotNo], (err) => {
                               if (err) {
                                   reject(err);
                               } else {
@@ -311,26 +311,37 @@ app.post('/api/submit_votes', (req, res) => {
                           });
                   });
               } else {
-                  // Insert votes for selected candidates with is_vote = 1
-                  const insertPromises = candidates.map((cEmail) => new Promise((resolve, reject) => {
-                      const insertQuery = 'INSERT INTO vote (c_email, v_email, BallotNo, is_vote) VALUES (?, ?, ?, 1)';
-                      db.query(insertQuery, [cEmail, voterEmail, nextBallotNo], (err) => {
-                          if (err) {
-                              reject(err);
-                          } else {
-                              resolve();
-                          }
-                      });
-                  }));
+                  // Resolve candidate IDs for the selected candidates
+                  const candidateIdQuery = 'SELECT id FROM candidate WHERE c_email IN (?)';
+                  db.query(candidateIdQuery, [candidates], (err, idResults) => {
+                      if (err) {
+                          console.error('Database error:', err);
+                          return res.status(500).json({ error: 'Failed to retrieve candidate IDs.' });
+                      }
 
-                  Promise.all(insertPromises)
-                      .then(() => {
-                          res.json({ message: 'Votes submitted successfully!', BallotNo: nextBallotNo });
-                      })
-                      .catch((err) => {
-                          console.error('Error inserting votes:', err);
-                          res.status(500).json({ error: 'Failed to submit votes.' });
-                      });
+                      const candidateIds = idResults.map(row => row.id);
+
+                      // Insert votes for selected candidates with is_vote = 1
+                      const insertPromises = candidateIds.map((candidateId) => new Promise((resolve, reject) => {
+                          const insertQuery = 'INSERT INTO vote (candidate_id, v_email, BallotNo, is_vote) VALUES (?, ?, ?, 1)';
+                          db.query(insertQuery, [candidateId, voterEmail, nextBallotNo], (err) => {
+                              if (err) {
+                                  reject(err);
+                              } else {
+                                  resolve();
+                              }
+                          });
+                      }));
+
+                      Promise.all(insertPromises)
+                          .then(() => {
+                              res.json({ message: 'Votes submitted successfully!', BallotNo: nextBallotNo });
+                          })
+                          .catch((err) => {
+                              console.error('Error inserting votes:', err);
+                              res.status(500).json({ error: 'Failed to submit votes.' });
+                          });
+                  });
               }
           });
       });
@@ -338,7 +349,6 @@ app.post('/api/submit_votes', (req, res) => {
       res.status(401).json({ error: 'User not logged in.' });
   }
 });
-
 
 
 app.get("/api/election_details", (req, res) => {
