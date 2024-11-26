@@ -86,15 +86,16 @@
     <script>
         // Handle error messages dynamically based on the URL
         document.addEventListener("DOMContentLoaded", () => {
-            const params = new URLSearchParams(window.location.search);
-            const error = params.get("error");
+    const params = new URLSearchParams(window.location.search);
+    const error = params.get("error");
 
-            if (error === "pendingApproval") {
-                document.getElementById("pendingApprovalMessage").classList.remove("hidden");
-            } else if (error === "invalid") {
-                document.getElementById("invalidLoginMessage").classList.remove("hidden");
-            }
-        });
+    if (error === "pendingApproval") {
+        document.getElementById("pendingApprovalMessage").classList.remove("hidden");
+    } else if (error === "invalid") {
+        document.getElementById("invalidLoginMessage").classList.remove("hidden");
+    }
+});
+
 
         // Toggle password visibility
         function togglePasswordVisibility() {

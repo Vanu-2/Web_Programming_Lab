@@ -105,8 +105,8 @@ app.post("/login", (req, res) => {
 
   console.log("Received login request for email:", email);
 
-  // Check if user is a voter and approved
-  const voterQuery = "SELECT * FROM voter WHERE v_email = ? AND password = ? AND status = 'approved'";
+  // Check if user is a voter
+  const voterQuery = "SELECT * FROM voter WHERE v_email = ? AND password = ?";
   db.query(voterQuery, [email, password], (err, voterResults) => {
     if (err) {
       console.error("Error querying the database for voter:", err);
@@ -114,12 +114,18 @@ app.post("/login", (req, res) => {
     }
 
     if (voterResults.length > 0) {
-      console.log("Approved voter found:", email);
-      req.session.userEmail = email;
-      // Voter exists, redirect to voter dashboard
-      return res.redirect("/voter/voter_dashboard.html");
+      const voter = voterResults[0];
+      if (voter.status === "approved") {
+        console.log("Approved voter found:", email);
+        req.session.userEmail = email;
+        // Redirect to voter dashboard
+        return res.redirect("/voter/voter_dashboard.html");
+      } else {
+        console.log("Voter not approved:", email);
+        // Redirect to login page with 'pendingApproval' error
+        return res.redirect("/login.html?error=pendingApproval");
+      }
     }
-    
 
     console.log("User not found or not approved in voter table:", email);
 
@@ -134,7 +140,7 @@ app.post("/login", (req, res) => {
       if (candidateResults.length > 0) {
         console.log("User found in candidate table:", email);
         req.session.userEmail = email;
-        // Candidate exists, redirect to candidate dashboard
+        // Redirect to candidate dashboard
         return res.redirect("/Candidate/candidate_dashboard.html");
       }
 
@@ -151,29 +157,16 @@ app.post("/login", (req, res) => {
         if (adminResults.length > 0) {
           console.log("User found in admin table:", email);
           req.session.userEmail = email;
-          // Admin exists, redirect to admin dashboard
+          // Redirect to admin dashboard
           return res.redirect("/admin/admin_dashboard.html");
         }
 
         console.log("User not found in any table:", email);
 
         // If no match found, user is not found in any table
-        res.redirect("/login.html?error=invalid");
+        return res.redirect("/login.html?error=invalid");
       });
     });
-  });
-});
-
-
-// Fetch pending voter registrations
-app.get("/get_pending_voters", (req, res) => {
-  const query = "SELECT * FROM voter WHERE status = 'pending'";
-  db.query(query, (err, results) => {
-    if (err) {
-      console.error("Error fetching pending voters:", err);
-      return res.status(500).json({ error: "Failed to fetch pending voters" });
-    }
-    res.json(results); // Send the fetched voters as a JSON response
   });
 });
 
@@ -640,7 +633,7 @@ app.get('/api/results', (req, res) => {
 });
 
 // Fetch the candidate name and position from database
-// In launch_election.js or server.js
+
 app.get('/candidate', (req, res) => {
   const query = `
     SELECT c.candidateName AS candidateName, c.c_email, d.designationName AS designation
@@ -683,7 +676,7 @@ app.get('/api/voterCount', (req, res) => {
       console.error("Error fetching voter count:", err);
       return res.status(500).send("Server error");
     }
-    res.json({ count: results[0].count }); // Send the count as JSON response
+    res.json({ count: results[0].count }); 
   });
 });
 

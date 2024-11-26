@@ -4,10 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Online Vote</title>
-    <link
-      href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css"
-      rel="stylesheet"
-    />
+    <link href="https://unpkg.com/tailwindcss@^2/dist/tailwind.min.css" rel="stylesheet" />
     <style>
       .slider-wrapper {
         position: relative;
@@ -22,136 +19,123 @@
         min-width: 100%;
         transition: opacity 0.5s ease-in-out;
       }
-      @media (max-width: 768px) {
-        .slider-wrapper {
-          width: 100%;
-        }
-        .slide {
-          width: 100%;
-        }
+      .section-heading {
+        font-size: 2rem;
+        color: #333;
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+      }
+      .contact-info li {
+        margin-bottom: 1rem;
+      }
+      /* Fixed footer at the bottom */
+      footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        background-color: #2d2d2d;
+        color: white;
+        text-align: center;
+        padding: 10px;
+      }
+      /* Make space for the fixed footer */
+      .content-wrapper {
+        padding-bottom: 50px; /* Adjust this value based on footer height */
       }
     </style>
   </head>
   <body class="bg-blue-200 flex flex-col min-h-screen">
     <!-- Header -->
     <header class="bg-blue-100 py-4 px-4 md:px-6">
-      <div
-        class="container mx-auto flex flex-col md:flex-row justify-between items-center"
-      >
+      <div class="container mx-auto flex flex-col md:flex-row justify-between items-center">
         <div class="flex items-center justify-between w-full md:w-auto">
           <img src="l3.png" alt="Logo" class="h-10 mr-2" />
-          <!-- Logo added here -->
           <div class="text-lg font-bold">Online Vote</div>
         </div>
         <nav id="navbar" class="hidden md:block w-full md:w-auto">
-          <ul
-            class="flex flex-col md:flex-row md:space-x-7 space-y-4 md:space-y-0"
-          >
-            <li>
-              <a
-                href="index.html"
-                class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
-                >HOME</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
-                >ABOUT</a
-              >
-            </li>
-            <li>
-              <a
-                href="#"
-                class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
-                >CONTACT</a
-              >
-            </li>
+          <ul class="flex flex-col md:flex-row md:space-x-7 space-y-4 md:space-y-0">
+            <li><a href="#home" class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded">HOME</a></li>
+            <li><a href="#about" class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded">ABOUT</a></li>
+            <li><a href="#contact" class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded">CONTACT</a></li>
           </ul>
         </nav>
       </div>
     </header>
 
-    <!-- Mobile Navigation -->
-    <div id="mobile-menu" class="md:hidden">
-      <ul class="flex flex-col space-y-2 mt-2">
-        <li>
-          <a
-            href="index.html"
-            class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
-            >HOME</a
-          >
-        </li>
-        <li>
-          <a
-            href="#"
-            class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
-            >ABOUT</a
-          >
-        </li>
-        <li>
-          <a
-            href="#"
-            class="bg-orange-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline text-center"
-            >CONTACT</a
-          >
-        </li>
-      </ul>
-    </div>
-
     <!-- Main Content -->
-    <main class="container mx-auto py-8 md:py-12 px-4 md:px-0 flex-grow">
+    <main class="container mx-auto py-8 md:py-12 px-4 md:px-0 flex-grow content-wrapper" id="home">
       <div class="flex flex-col md:flex-row items-center">
         <div class="md:w-1/2 px-4">
-          <h1 class="text-3xl md:text-4xl font-bold text-gray-800 mb-4">
-            Online Vote
+          <h1 class="text-4xl md:text-5xl font-extrabold text-gray-900 mb-6 text-center">
+            Online <span class="text-yellow-500">Vote</span>
           </h1>
-          <p class="text-gray-600 mb-6 text-base md:text-lg">
-            Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do
-            eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim
-            ad minim veniam.
+          <p class="text-gray-700 mb-8 text-base md:text-lg leading-relaxed text-center">
+            <span class="text-xl font-semibold">
+              🌟 Welcome to the Future of Voting! <br />
+              <span class="text-yellow-500">🔒 Secure</span>, 
+              <span class="text-green-500">🌐 Transparent</span>, and 
+              <span class="text-blue-500">⚡ Efficient</span> E-Voting System.
+            </span>
           </p>
-          <a
-            href="login.html"
-            class="bg-yellow-500 hover:bg-green-600 text-black font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            >Get Started</a
-          >
+          <div class="text-center">
+            <a href="login.html" class="bg-yellow-500 hover:bg-green-600 text-black font-bold py-3 px-6 rounded-lg shadow-md transition-transform transform hover:scale-105">
+              🚀 Get Started
+            </a>
+          </div>
         </div>
 
         <!-- Dynamic Image Slider Section -->
         <div class="md:w-1/2 px-4 mt-6 md:mt-0">
           <div class="slider-wrapper">
             <div id="slider" class="slider">
-              <img
-                src="1st pic.jpg"
-                alt="Image 1"
-                class="slide w-full h-auto rounded"
-              />
-              <img
-                src="2nd.jpeg"
-                alt="Image 2"
-                class="slide w-full h-auto rounded"
-              />
-              <img
-                src="3rd.jpg"
-                alt="Image 3"
-                class="slide w-full h-auto rounded"
-              />
-              <img
-                src="4th.jpg"
-                alt="Image 4"
-                class="slide w-full h-auto rounded"
-              />
+              <img src="1st pic.jpg" alt="Image 1" class="slide w-full h-auto rounded" />
+              <img src="2nd.jpeg" alt="Image 2" class="slide w-full h-auto rounded" />
+              <img src="3rd.jpg" alt="Image 3" class="slide w-full h-auto rounded" />
+              <img src="4th.jpg" alt="Image 4" class="slide w-full h-auto rounded" />
             </div>
           </div>
         </div>
       </div>
+
+      <!-- About Us Section -->
+       <br>
+       <br>
+       <br>
+      <section id="about" class="py-19 bg-blue-100 flex justify-center items-center">
+        <div class="container mx-auto text-center px-4 md:px-0">
+          <h2 class="section-heading text-3xl font-bold text-gray-800 mb-4">About Us</h2>
+          <p class="text-gray-700 leading-relaxed mb-6 text-lg md:text-xl">
+            Welcome to Online Vote, a secure and transparent platform designed to revolutionize the voting process. Our mission is to enhance democracy by making elections accessible, efficient, and fair for everyone. Using cutting-edge technology, we ensure that every vote is counted with integrity and precision.
+          </p>
+          <p class="text-gray-700 mt-4 text-lg md:text-xl">
+            Join us in shaping the future of digital democracy, where your voice truly matters.
+          </p>
+        </div>
+      </section>
+      <br>
+      <br>
+      <!-- Contact Us Section -->
+      <section id="contact" class="py-12 bg-blue-100 flex justify-center items-center">
+        <div class="container mx-auto text-center px-4 md:px-0">
+          <h2 class="section-heading text-3xl font-bold text-gray-800 mb-4">Contact Us</h2>
+          <p class="text-gray-700 leading-relaxed mb-6 text-lg md:text-xl">
+            We’d love to hear from you! Whether you have questions, feedback, or need support, feel free to reach out to us:
+          </p>
+          <ul class="contact-info mt-6 text-gray-700 space-y-4 text-lg md:text-xl">
+            <li><strong>Email:</strong> 📧 210224@ku.ac.bd</li>
+            <li><strong>Phone:</strong> 📱 01990-901768</li>
+            <li><strong>Facebook:</strong> <a href="https://www.facebook.com/partho.raj.nandi.2024?mibextid=ZbWKwL" class="text-blue-500 hover:text-blue-700">Visit us in Facebook </a></li>
+            <li><strong>LinkedIn:</strong> 🔗 <a href="https://www.linkedin.com/in/susmita-biswas-928771330/" class="text-blue-700">Visit us in LinkedIn</a></li>
+          </ul>
+        </div>
+      </section>
     </main>
 
+
     <!-- Footer -->
-    <footer class="bg-gray-800 text-white py-4 px-4 md:px-6">
-      <div class="container mx-auto text-center">
+    <footer>
+      <div class="container mx-auto">
         <p>&copy; 2024 Online Vote. All rights reserved.</p>
       </div>
     </footer>
@@ -163,27 +147,16 @@
       const slides = document.querySelectorAll(".slide");
       const totalSlides = slides.length;
 
-      // Function to update slide position
       function updateSliderPosition() {
         slider.style.transform = `translateX(-${currentSlide * 100}%)`;
       }
 
-      // Auto-rotate function
       function autoSlide() {
-        currentSlide = (currentSlide + 1) % totalSlides; // Move to the next slide, loop back at the end
+        currentSlide = (currentSlide + 1) % totalSlides;
         updateSliderPosition();
       }
 
-      // Auto-slide every 1 second
-      setInterval(autoSlide, 1000);
-
-      // Mobile menu toggle
-      const menuToggle = document.getElementById("menu-toggle");
-      const mobileMenu = document.getElementById("mobile-menu");
-
-      menuToggle.addEventListener("click", () => {
-        mobileMenu.classList.toggle("hidden");
-      });
+      setInterval(autoSlide, 3000);
     </script>
   </body>
 </html>
