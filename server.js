@@ -409,59 +409,101 @@ modifyVoterInfo(app);
 // Endpoint to fetch results
 
 app.get('/results', (req, res) => {
-
-  const electionId = 1; // Fixed election ID
-
-
+  const electionId = 1; // Replace with the current election ID if applicable
   const sql = `
-
       SELECT 
-    d.designationId,  -- Ensure you select the designationId
-    d.designationName, 
-    c.candidateName, 
-    c.c_email, 
-    COUNT(v.v_email) AS voteCount,
-    CASE 
-        WHEN COUNT(v.v_email) = maxVote.maxVote THEN 1 
-        ELSE 0 
-    END AS isWinner
-FROM 
-    candidate c
-JOIN 
-    designations d ON c.designationId = d.designationId
-LEFT JOIN 
-    vote v ON c.c_email = v.c_email
-LEFT JOIN 
-    (SELECT designationId, MAX(voteCount) AS maxVote 
-     FROM (
-        SELECT 
-            c.designationId, 
-            COUNT(v.v_email) AS voteCount 
-        FROM 
-            candidate c
-        LEFT JOIN 
-            vote v ON c.c_email = v.c_email
-        GROUP BY 
-            c.c_email
-    ) AS counts GROUP BY designationId) AS maxVote ON d.designationId = maxVote.designationId
-WHERE 
-    d.electionId = ?
-GROUP BY 
-    d.designationId, c.c_email`;
-
+          d.designationId, 
+          d.designationName, 
+          c.candidateName, 
+          c.id, 
+          COUNT(v.vote_id) AS voteCount,
+          CASE 
+              WHEN COUNT(v.vote_id) = (
+                  SELECT MAX(voteCount)
+                  FROM (
+                      SELECT 
+                          c.designationId, 
+                          COUNT(v.vote_id) AS voteCount
+                      FROM candidate c
+                      LEFT JOIN vote v ON c.id = v.candidate_id AND v.is_vote = 1
+                      GROUP BY c.id
+                  ) AS maxVotes 
+                  WHERE maxVotes.designationId = d.designationId
+              ) THEN 1
+              ELSE 0
+          END AS isWinner
+      FROM 
+          candidate c
+      JOIN 
+          designations d ON c.designationId = d.designationId
+      LEFT JOIN 
+          vote v ON c.id = v.candidate_id AND v.is_vote = 1
+      WHERE 
+          d.electionId = ?
+      GROUP BY 
+          c.id
+  `;
 
   db.query(sql, [electionId], (error, results) => {
-
       if (error) {
-
-          return res.status(500).json({ error: 'Database query failed' });
-
+          return res.status(500).json({ error: 'Failed to fetch results' });
       }
-
       res.json(results);
-
   });
+});
 
+// Route to publish results
+app.post('/publish-results', (req, res) => {
+const electionId = 1; // Fixed election ID
+
+// DELETE query to remove existing results for this election
+const sqlDelete = 'DELETE FROM results WHERE electionId = ?';
+
+// INSERT query to add new results
+const sqlInsert = `
+    INSERT INTO results (electionId, designationId, candidateEmail, voteCount, isWinner)
+    VALUES (?, ?, ?, ?, ?)
+    ON DUPLICATE KEY UPDATE voteCount = ?, isWinner = ?;`;
+
+const results = req.body; // Expecting results from the client
+
+// Start by deleting existing results
+db.query(sqlDelete, [electionId], (deleteError) => {
+    if (deleteError) {
+        console.error('Error deleting old results:', deleteError);
+        return res.status(500).json({ error: 'Failed to delete old results: ' + deleteError.message });
+    }
+
+    // Insert new results
+    const queries = results.map((row) => {
+        return new Promise((resolve, reject) => {
+            db.query(
+                sqlInsert,
+                [
+                    electionId,
+                    row.designationId,
+                    row.c_email,
+                    row.voteCount,
+                    row.isWinner,
+                    row.voteCount,
+                    row.isWinner,
+                ],
+                (insertError) => {
+                    if (insertError) return reject(insertError);
+                    resolve();
+                }
+            );
+        });
+    });
+
+    // Execute all queries and handle the result
+    Promise.all(queries)
+        .then(() => res.json({ message: 'Results published successfully!' }))
+        .catch((err) => {
+            console.error('Error publishing results:', err);
+            res.status(500).json({ error: 'Failed to publish results: ' + err.message });
+     });
+ });
 });
 
 
@@ -540,7 +582,7 @@ app.get('/api/results', (req, res) => {
 
           d.designationName AS post, 
 
-          r.c_email AS candidateName, 
+          r.candidateEmail AS candidateName, 
 
           r.voteCount, 
 
