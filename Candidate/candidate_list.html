@@ -89,8 +89,8 @@
                 <th class="px-6 py-3 text-gray-700 font-semibold">Name</th>
                 <th class="px-6 py-3 text-gray-700 font-semibold">Email</th>
                 <th class="px-6 py-3 text-gray-700 font-semibold">Symbol</th>
-                <th class="px-6 py-3 text-gray-700 font-semibold">Election ID</th>
-                <th class="px-6 py-3 text-gray-700 font-semibold">Designation ID</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Election Name</th>
+                <th class="px-6 py-3 text-gray-700 font-semibold">Designation </th>
               </tr>
             </thead>
             <tbody id="candidate-list">
@@ -155,36 +155,33 @@
 
 
       fetch("/candidates")
-  .then((response) => response.json())
-  .then((data) => {
-    const candidateList = document.getElementById("candidate-list");
+        .then((response) => response.json())
+        .then((data) => {
+          const candidateList = document.getElementById("candidate-list");
 
-    // Loop through the candidates and display their details in table rows
-    data.forEach((candidate) => {
-      const row = document.createElement("tr");
-      row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
+          // Loop through the candidates and display their details in table rows
+          data.forEach((candidate) => {
+            const row = document.createElement("tr");
+            row.classList.add("bg-white", "hover:bg-gray-100", "transition", "duration-300");
 
-      row.innerHTML = `
-        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.candidateName}</td>
-        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.c_email}</td>
-        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">
-          ${candidate.symbol 
-            ? `<img src="data:image/png;base64,${candidate.symbol}" alt="Symbol" class="w-10 h-10 object-contain" />` 
-            : "No Symbol"}
-        </td>
-        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.electionId}</td>
-        <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designationId}</td>
-      `;
+            row.innerHTML = `
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.candidateName}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.c_email}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">
+                ${candidate.symbol 
+                  ? `<img src="data:image/png;base64,${candidate.symbol}" alt="Symbol" class="w-10 h-10 object-contain" />` 
+                  : "No Symbol"}
+              </td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.electionName}</td>
+              <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designationName}</td>
+            `;
 
-      candidateList.appendChild(row);
-    });
-  })
-  .catch((error) => {
-    console.error("Error fetching candidate data:", error);
-  });
-
-
-
+            candidateList.appendChild(row);
+          });
+        })
+        .catch((error) => {
+          console.error("Error fetching candidate data:", error);
+        });
     </script>
   </body>
 </html>

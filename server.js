@@ -171,9 +171,7 @@ app.post("/login", (req, res) => {
 });
 
 
-// End of login page backend
 
-// Endpoint to handle file uploads
 // Serve static files from the admin folder
 app.use(express.static(__dirname + "/admin"));
 
@@ -219,8 +217,8 @@ app.post('/logout', (req, res) => {
       console.error('Error destroying session:', err);
       return res.status(500).json({ error: 'Could not log out' });
     }
-    res.clearCookie('connect.sid'); // Clear the session cookie
-    res.redirect('/login.html');   // Redirect to the login page
+    res.clearCookie('connect.sid');
+    res.redirect('/login.html');   
   });
 });
 
@@ -694,19 +692,35 @@ app.get("/voter", (req, res) => {
 app.get("/candidates", (req, res) => {
   const { page = 1, limit = 10 } = req.query; // Default values
   const offset = (page - 1) * limit;
-  const query = `SELECT candidateName, c_email, symbol, electionId, designationId FROM candidate LIMIT ? OFFSET ?`;
+
+  const query = `
+    SELECT 
+      candidate.candidateName, 
+      candidate.c_email, 
+      candidate.symbol, 
+      elections.electionName, 
+      designations.designationName
+    FROM candidate
+    JOIN elections ON candidate.electionId = elections.electionId
+    JOIN designations ON candidate.designationId = designations.designationId
+    LIMIT ? OFFSET ?;
+  `;
+
   db.query(query, [Number(limit), Number(offset)], (err, results) => {
     if (err) {
       console.error("Error fetching candidates:", err);
       return res.status(500).json({ error: "Server error" });
     }
+
     const candidates = results.map(candidate => ({
       ...candidate,
       symbol: candidate.symbol ? Buffer.from(candidate.symbol).toString("base64") : null,
     }));
+
     res.json(candidates);
   });
 });
+
 
 
 app.get("/elections", (req, res) => {
