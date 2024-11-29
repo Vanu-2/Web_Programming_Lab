@@ -17,14 +17,24 @@
     <!-- Sidebar -->
     <div class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto">
       <div class="px-11 py-2 w-full flex justify-center">
-        <img src="l3.png" alt="Logo" class="w-full h-auto w-50 object-contain" />
+        <img src="l3.png" alt="Logo" class="w-full h-auto object-contain" />
       </div>
       <ul id="sidebarMenu" class="mt-8">
-        <li class="px-5 py-3 hover:bg-gray-400"><a href="admin_dashboard.html" class="block">Dashboard</a></li>
-        <li class="px-5 py-3 hover:bg-gray-400"><a href="approve_voter.html" class="block">Approve Voter Registration</a></li>
-        <li class="px-5 py-3 hover:bg-gray-400"><a href="modify_voter_info.html" class="block">Modify Voter Information</a></li>
-        <li class="px-5 py-3 hover:bg-gray-400"><a href="modify_candidate_list.html" class="block">Modify Candidate List</a></li>
-        <li class="px-5 py-3 hover:bg-gray-400"><a href="result_publish.html" class="block">Publish result</a></li>
+        <li class="px-5 py-3 hover:bg-gray-400">
+          <a href="admin_dashboard.html" class="block">Dashboard</a>
+        </li>
+        <li class="px-5 py-3 hover:bg-gray-400">
+          <a href="approve_voter.html" class="block">Approve Voter Registration</a>
+        </li>
+        <li class="px-5 py-3 hover:bg-gray-400">
+          <a href="modify_voter_info.html" class="block">Modify Voter Information</a>
+        </li>
+        <li class="px-5 py-3 hover:bg-gray-400">
+          <a href="modify_candidate_list.html" class="block">Modify Candidate List</a>
+        </li>
+        <li class="px-5 py-3 hover:bg-gray-400">
+          <a href="result_publish.html" class="block">Publish result</a>
+        </li>
       </ul>
     </div>
 
@@ -32,46 +42,11 @@
     <div class="ml-64 p-8 flex-grow">
       <div class="flex justify-between items-center mb-8">
         <h1 class="text-3xl font-bold">Create New Election</h1>
-        <div class="flex items-center space-x-4">
-           <!-- Profile with dropdown -->
-           <div class="relative">
-            <button id="profileBtn" class="focus:outline-none">
-              <img
-                src="l2.png"
-                alt="Profile"
-                class="w-10 h-10 rounded-full cursor-pointer"
-              />
-            </button>
-
-            <!-- Dropdown Menu -->
-            <div
-              id="profileDropdown"
-              class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20"
-            >
-              <p class="block px-4 py-2 text-gray-800">
-                <strong>Email:</strong> <span id="user-email">Loading...</span>
-              </p>
-              <p class="block px-4 py-2 text-gray-800">
-                <strong>Username:</strong> <span id="user-name">Loading...</span>
-              </p>
-           
-              <form action="/logout" method="post">
-                <button
-                  type="submit"
-                  class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200"
-                >
-                  Logout
-                </button>
-              </form>
-              
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Create Election Form -->
       <main class="flex-1 p-6">
-        <div class="max-w-xl mx-auto bg-white p-8 shadow-lg rounded-lg">
+        <div class="max-w-2xl mx-auto bg-white p-8 shadow-lg rounded-lg">
           <form id="createElectionForm">
             <div class="mb-4">
               <label for="electionName" class="block text-gray-700 font-semibold mb-2">Election Name:</label>
@@ -80,30 +55,52 @@
                 id="electionName"
                 name="electionName"
                 required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div class="mb-4">
-              <label for="electionDate" class="block text-gray-700 font-semibold mb-2">Election Date:</label>
+              <label for="startDate" class="block text-gray-700 font-semibold mb-2">Start Date:</label>
               <input
-                type="date"
-                id="electionDate"
-                name="electionDate"
+                type="datetime-local"
+                id="startDate"
+                name="startDate"
                 required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
 
             <div class="mb-4">
-              <label for="designations" class="block text-gray-700 font-semibold mb-2">Designations (comma-separated):</label>
+              <label for="endDate" class="block text-gray-700 font-semibold mb-2">End Date:</label>
               <input
-                type="text"
-                id="designations"
-                name="designations"
+                type="datetime-local"
+                id="endDate"
+                name="endDate"
                 required
-                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+            </div>
+
+            <div id="designationsContainer" class="mb-4">
+              <label class="block text-gray-700 font-semibold mb-2">Designations:</label>
+              <div class="flex items-center mb-2">
+                <input
+                  type="text"
+                  placeholder="Designation Name"
+                  class="designation-name w-full px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none"
+                />
+                <input
+                  type="number"
+                  placeholder="Max Position"
+                  class="designation-max w-24 px-3 py-2 border-t border-b border-gray-300 focus:outline-none"
+                />
+                <button
+                  type="button"
+                  class="add-designation bg-green-500 text-white px-4 py-2 rounded-r-lg hover:bg-green-600"
+                >
+                  +
+                </button>
+              </div>
             </div>
 
             <button
@@ -124,70 +121,63 @@
       </div>
     </footer>
 
-    <!-- Script to toggle the profile dropdown on click and submit the form -->
     <script>
-       const profileBtn = document.getElementById("profileBtn");
-      const profileDropdown = document.getElementById("profileDropdown");
-
-      profileBtn.addEventListener("click", () => {
-        profileDropdown.classList.toggle("hidden");
+      // Dynamic Designation Addition
+      document.querySelector(".add-designation").addEventListener("click", () => {
+        const container = document.getElementById("designationsContainer");
+        const div = document.createElement("div");
+        div.className = "flex items-center mb-2";
+        div.innerHTML = `
+          <input
+            type="text"
+            placeholder="Designation Name"
+            class="designation-name w-full px-3 py-2 border border-gray-300 rounded-l-lg focus:outline-none"
+          />
+          <input
+            type="number"
+            placeholder="Max Position"
+            class="designation-max w-24 px-3 py-2 border-t border-b border-gray-300 focus:outline-none"
+          />
+          <button
+            type="button"
+            class="remove-designation bg-red-500 text-white px-4 py-2 rounded-r-lg hover:bg-red-600"
+          >
+            -
+          </button>
+        `;
+        container.appendChild(div);
+        div.querySelector(".remove-designation").addEventListener("click", () => {
+          div.remove();
+        });
       });
 
-      window.addEventListener("click", (e) => {
-        if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-          profileDropdown.classList.add("hidden");
-        }
-      });
-
-      // Fetch user data and populate fields
-      document.addEventListener("DOMContentLoaded", () => {
-        fetch("/getUserData")
-          .then((response) => {
-            if (!response.ok) {
-              throw new Error("Failed to fetch user data");
-            }
-            return response.json();
-          })
-          .then((data) => {
-            document.getElementById("user-email").textContent = data.email || "N/A";
-            document.getElementById("user-name").textContent = data.username || "N/A";
-          })
-          .catch((error) => {
-            console.error("Error fetching user data:", error);
-          });
-      });
-      // Form submission with fetch
+      // Form Submission
       document
         .getElementById("createElectionForm")
         .addEventListener("submit", async (event) => {
           event.preventDefault();
 
           const electionName = document.getElementById("electionName").value;
-          const electionDate = document.getElementById("electionDate").value;
-          const designations = document
-            .getElementById("designations")
-            .value.split(",")
-            .map((d) => d.trim());
+          const startDate = document.getElementById("startDate").value;
+          const endDate = document.getElementById("endDate").value;
+          const designations = Array.from(
+            document.querySelectorAll("#designationsContainer .flex")
+          ).map((designation) => ({
+            name: designation.querySelector(".designation-name").value,
+            maxPosition: designation.querySelector(".designation-max").value,
+          }));
 
           try {
             const response = await fetch("/admin/create-election", {
               method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                electionName,
-                electionDate,
-                designations,
-              }),
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ electionName, startDate, endDate, designations }),
             });
 
-            if (!response.ok) {
-              throw new Error("Network response was not ok");
-            }
+            if (!response.ok) throw new Error("Failed to create election");
 
             const message = await response.text();
-            alert(message); // Show success message
+            alert(message);
           } catch (error) {
             console.error("Error:", error);
             alert("Failed to create election");

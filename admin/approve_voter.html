@@ -98,18 +98,18 @@
     <script>
         const profileBtn = document.getElementById("profileBtn");
         const profileDropdown = document.getElementById("profileDropdown");
-
+    
         profileBtn.addEventListener("click", () => {
             profileDropdown.classList.toggle("hidden");
         });
-
+    
         window.addEventListener("click", (e) => {
             if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
                 profileDropdown.classList.add("hidden");
             }
         });
-
-        // Fetch user data and populate fields
+    
+        // Fetch user data
         document.addEventListener("DOMContentLoaded", () => {
             fetch("/getUserData")
                 .then(response => response.json())
@@ -119,51 +119,70 @@
                 })
                 .catch(error => console.error("Error fetching user data:", error));
         });
-
-       
-       // Fetch pending registrations
-document.addEventListener("DOMContentLoaded", () => {
-  fetch("/get_pending_voters")
-    .then(response => response.json())
-    .then(data => {
-      const tableBody = document.getElementById("pendingVoters");
-      tableBody.innerHTML = ""; // Clear any previous rows
-      data.forEach((voter, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td class="py-2 px-4">${index + 1}</td>
-          <td class="py-2 px-4">${voter.username}</td>
-          <td class="py-2 px-4">${voter.v_email}</td>
-          <td class="py-2 px-4">${voter.dateOfBirth}</td>
-          <td class="py-2 px-4">${voter.address}</td>
-          
-          <td class="py-2 px-4">
-            <button class="bg-green-500 text-white px-4 py-2 rounded" 
-                onclick="approveVoter('${voter.v_email}')">Approve</button>
-          </td>
-        `;
-        tableBody.appendChild(row);
-      });
-    })
-    .catch(error => console.error("Error fetching pending voters:", error));
-});
-
-      
-
-function approveVoter(voterEmail) {
-    fetch("/approve_voter", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ voterId: voterEmail }) // Pass the voter's email
-    })
-      .then(response => response.text())
-      .then(message => {
-        alert(message);
-        location.reload(); // Refresh the page to update the table
-      })
-      .catch(error => console.error("Error approving voter:", error));
-  }
+    
+        // Fetch pending registrations
+        document.addEventListener("DOMContentLoaded", () => {
+            fetch("/get_pending_voters")
+                .then(response => response.json())
+                .then(data => {
+                    const tableBody = document.getElementById("pendingVoters");
+                    tableBody.innerHTML = ""; // Clear existing rows
+                    data.forEach((voter, index) => {
+                        const row = document.createElement("tr");
+                        row.innerHTML = `
+                            <td class="py-2 px-4">${index + 1}</td>
+                            <td class="py-2 px-4">${voter.username}</td>
+                            <td class="py-2 px-4">${voter.v_email}</td>
+                            <td class="py-2 px-4">${voter.dateOfBirth}</td>
+                            <td class="py-2 px-4">${voter.address}</td>
+                            <td class="py-2 px-4">
+                                <button class="bg-green-500 text-white px-4 py-2 rounded mr-2"
+                                    onclick="approveVoter('${voter.v_email}')">Approve</button>
+                                <button class="bg-red-500 text-white px-4 py-2 rounded"
+                                    onclick="denyVoter('${voter.v_email}')">Deny</button>
+                            </td>
+                        `;
+                        tableBody.appendChild(row);
+                    });
+                })
+                .catch(error => console.error("Error fetching pending voters:", error));
+        });
+    
+        // Approve voter
+        function approveVoter(voterEmail) {
+            fetch("/approve_voter", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ voterId: voterEmail })
+            })
+                .then(response => response.text())
+                .then(message => {
+                    alert(message);
+                    location.reload();
+                })
+                .catch(error => console.error("Error approving voter:", error));
+        }
+    
+        // Deny voter
+        function denyVoter(voterEmail) {
+            fetch("/deny_voter", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ voterId: voterEmail })
+            })
+                .then(response => response.text())
+                .then(message => {
+                    alert(message);
+                    const rowToRemove = Array.from(document.querySelectorAll("#pendingVoters tr"))
+                        .find(row => row.cells[2].textContent === voterEmail);
+                    if (rowToRemove) {
+                        rowToRemove.remove();
+                    }
+                })
+                .catch(error => console.error("Error denying voter:", error));
+        }
     </script>
+    
 
 </body>
 

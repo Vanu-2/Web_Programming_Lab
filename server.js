@@ -12,19 +12,19 @@ const app = express();
 const port = 3000;
 
 app.use(bodyParser.json());
-// Middleware for parsing form data
+
 app.use(bodyParser.urlencoded({ extended: true }));
-app.use(express.static(__dirname)); // Serve static files from the current directory
+app.use(express.static(__dirname)); 
 app.use(session({
-  secret: 'your-secret-key', // Replace with a strong secret key
+  secret: 'your-secret-key', 
   resave: false,
   saveUninitialized: true,
-  cookie: { secure: false } // Set to true if using HTTPS
+  cookie: { secure: false } 
 }));
 // Set up multer for file uploads
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    cb(null, "uploads/"); // Ensure this directory exists
+    cb(null, "uploads/"); 
   },
   filename: (req, file, cb) => {
     cb(null, file.originalname);
@@ -37,11 +37,11 @@ const upload = multer({ storage: storage });
 const db = mysql.createConnection({
   host: "localhost",
   user: "root",
-  password: "", // Your MySQL password
-  database: "evoting_system", // Your database name
+  password: "", 
+  database: "evoting_system", 
 });
 
-// Connect to the database
+
 db.connect((err) => {
   if (err) {
     console.error("Database connection failed:", err);
@@ -50,16 +50,77 @@ db.connect((err) => {
   console.log("Connected to MySQL Database");
 });
 
+app.use(express.static('public'));
+app.use(bodyParser.urlencoded({ extended: true }));
+app.use(bodyParser.json());
 
+// Multer setup for file uploads
+
+
+
+
+
+// Routes
+
+// Get designations for dropdown
+// Fetch designations
+app.get('/getDesignations', (req, res) => {
+  db.query('SELECT designationId, designationName FROM designations', (err, results) => {
+      if (err) {
+          return res.status(500).json({ message: 'Error fetching designations' });
+      }
+      res.json(results); // Results should contain 'id' and 'designationName'
+  });
+});
+
+// Fetch elections
+app.get('/getElections', (req, res) => {
+  db.query('SELECT electionId, electionName FROM elections', (err, results) => {
+      if (err) {
+          return res.status(500).json({ message: 'Error fetching elections' });
+      }
+      res.json(results); // Results should contain 'id' and 'electionName'
+  });
+});
+
+
+// Add candidate route
+app.post('/addCandidate', upload.single('symbol'), (req, res) => {
+    const { candidateName, c_email, designationId, electionId } = req.body;
+    const password = 'defaultpassword123'; // Default password for new candidates
+    const symbol = fs.readFileSync(req.file.path); // Reading uploaded symbol image file
+
+    // Check if the email already exists
+    db.query('SELECT * FROM candidate WHERE c_email = ?', [c_email], (err, results) => {
+        if (err) {
+            return res.status(500).json({ message: 'Error checking candidate email' });
+        }
+
+        if (results.length > 0) {
+            return res.status(400).json({ message: 'Candidate with this email already exists' });
+        }
+
+        // Insert new candidate
+        const query = 'INSERT INTO candidate (candidateName, c_email, password, symbol, electionId, designationId) VALUES (?, ?, ?, ?, ?, ?)';
+        db.query(query, [candidateName, c_email, password, symbol, electionId, designationId], (err, result) => {
+            if (err) {
+                return res.status(500).json({ message: 'Error adding candidate' });
+            }
+            // Delete uploaded file after storing in DB
+            fs.unlinkSync(req.file.path);
+
+            res.json({ success: true, message: 'Candidate added successfully!' });
+        });
+    });
+});
 const electionRoutes = require("./admin/election_launch")(db);
 app.use("/admin", electionRoutes);
-
 
 // Handle signup form submission
 app.post("/registration_form", (req, res) => {
   const { username, email, dateOfBirth, address, password } = req.body;
 
-  // Insert user data into the database
+  
   const query =
     "INSERT INTO voter (username, v_email, dateOfBirth, address, password) VALUES (?, ?, ?, ?, ?)";
   db.query(
@@ -71,19 +132,17 @@ app.post("/registration_form", (req, res) => {
         res.status(500).send("Server error");
         return;
       }
-      res.send(
-        'Signup successful! You can now <a href="login.html">Log in</a>.'
-      );
+      res.redirect("/login.html");
     }
   );
 });
 
-// Start login page backend
+
 // New Route: Approve Voter
 app.post("/approve_voter", (req, res) => {
   const { voterId } = req.body;
 
-  // Update the voter's status to 'approved'
+  
   const query = "UPDATE voter SET status = 'approved' WHERE v_email = ?";
   db.query(query, [voterId], (err, result) => {
     if (err) {
@@ -105,7 +164,7 @@ app.post("/login", (req, res) => {
 
   console.log("Received login request for email:", email);
 
-  // Check if user is a voter
+  
   const voterQuery = "SELECT * FROM voter WHERE v_email = ? AND password = ?";
   db.query(voterQuery, [email, password], (err, voterResults) => {
     if (err) {
@@ -118,7 +177,7 @@ app.post("/login", (req, res) => {
       if (voter.status === "approved") {
         console.log("Approved voter found:", email);
         req.session.userEmail = email;
-        // Redirect to voter dashboard
+        
         return res.redirect("/voter/voter_dashboard.html");
       } else {
         console.log("Voter not approved:", email);
@@ -163,12 +222,27 @@ app.post("/login", (req, res) => {
 
         console.log("User not found in any table:", email);
 
-        // If no match found, user is not found in any table
+        
         return res.redirect("/login.html?error=invalid");
       });
     });
   });
 });
+
+// Deny voter
+app.post('/deny_voter', (req, res) => {
+  const voterEmail = req.body.voterId;
+  const sql = `DELETE FROM voter WHERE v_email = ?`;
+  db.query(sql, [voterEmail], (err, result) => {
+      if (err) {
+          console.error('Error deleting voter:', err);
+          res.status(500).send('Error denying voter.');
+          return;
+      }
+      res.send('Voter denied successfully.');
+  });
+});
+
 
 
 
@@ -225,26 +299,26 @@ app.post('/logout', (req, res) => {
 
 
 app.get("/api/elections", (req, res) => {
-  const query = "SELECT electionId, electionName FROM elections"; // Adjust the query as per your table structure
+  const query = "SELECT electionId, electionName FROM elections"; 
 
   db.query(query, (err, results) => {
       if (err) {
           console.error("Error fetching elections:", err);
           return res.status(500).json({ error: "Server error" });
       }
-      res.json(results); // Return the list of elections
+      res.json(results); 
   });
 });
 
 // Fetch election details by election ID
 app.post('/api/submit_votes', (req, res) => {
   if (req.session && req.session.userEmail) {
-      const voterEmail = req.session.userEmail; // Access email from session
+      const voterEmail = req.session.userEmail; 
       console.log('Logged in email:', voterEmail);
 
       const { candidates } = req.body;
 
-      // Check if candidates are valid
+      
       if (!Array.isArray(candidates)) {
           return res.status(400).json({ error: 'Invalid request format.' });
       }
@@ -271,7 +345,7 @@ app.post('/api/submit_votes', (req, res) => {
 
               const nextBallotNo = (results[0].maxBallotNo || 0) + 1;
 
-              // Check if candidates array is empty
+              // Check if we do not give any vote  
               if (candidates.length === 0) {
                   // Insert votes for all candidates with is_vote = 0
                   const allCandidatesQuery = 'SELECT id FROM candidate';
@@ -343,7 +417,7 @@ app.post('/api/submit_votes', (req, res) => {
 
 
 app.get("/api/election_details", (req, res) => {
-    const electionId = '1'; // Example electionId
+    const electionId = '1'; 
 
     const query = `
         SELECT 
@@ -385,7 +459,7 @@ app.get("/api/election_details", (req, res) => {
                 designations[designationId].candidate.push({
                     candidateName,
                     email: c_email,
-                    symbol: base64Symbol // Add the Base64 image
+                    symbol: base64Symbol 
                 });
             }
         });
@@ -400,7 +474,7 @@ modifyVoterInfo(app);
 // Endpoint to fetch results
 
 app.get('/results', (req, res) => {
-  const electionId = 1; // Replace with the current election ID if applicable
+  const electionId = 1; 
   const sql = `
       SELECT 
           d.designationId, 
@@ -450,13 +524,13 @@ const electionId = 1; // Fixed election ID
 // DELETE query to remove existing results for this election
 const sqlDelete = 'DELETE FROM results WHERE electionId = ?';
 
-// INSERT query to add new results
+//   add new results
 const sqlInsert = `
     INSERT INTO results (electionId, designationId, candidateEmail, voteCount, isWinner)
     VALUES (?, ?, ?, ?, ?)
     ON DUPLICATE KEY UPDATE voteCount = ?, isWinner = ?;`;
 
-const results = req.body; // Expecting results from the client
+const results = req.body; 
 
 // Start by deleting existing results
 db.query(sqlDelete, [electionId], (deleteError) => {
@@ -487,7 +561,7 @@ db.query(sqlDelete, [electionId], (deleteError) => {
         });
     });
 
-    // Execute all queries and handle the result
+    
     Promise.all(queries)
         .then(() => res.json({ message: 'Results published successfully!' }))
         .catch((err) => {
@@ -502,7 +576,7 @@ db.query(sqlDelete, [electionId], (deleteError) => {
 
 app.post('/publish-results', (req, res) => {
 
-  const electionId = 1; // Fixed election ID
+  const electionId = 1; 
 
   const sqlInsert = `
 
@@ -513,7 +587,7 @@ app.post('/publish-results', (req, res) => {
       ON DUPLICATE KEY UPDATE voteCount = ?, isWinner = ?;`;
 
 
-  const results = req.body; // Expecting results from the client
+  const results = req.body; 
 
 
   const queries = results.map(row => {
@@ -626,11 +700,11 @@ app.get('/api/results', (req, res) => {
           return acc;
 
       }, {});
-      res.json(Object.values(groupedResults)); // Send the grouped results as JSON
+      res.json(Object.values(groupedResults)); 
   });
 });
 
-// Fetch the candidate name and position from database
+//  candidate name and position from database
 
 app.get('/candidate', (req, res) => {
   const query = `
@@ -661,12 +735,12 @@ app.get('/api/candidateCount', (req, res) => {
       return;
     }
 
-    // Send the count as a JSON response
+    
     res.json({ count: results[0].count });
   });
 });
 
-// Endpoint to fetch total voter count
+
 app.get('/api/voterCount', (req, res) => {
   const query = 'SELECT COUNT(*) as count FROM voter';
   db.query(query, (err, results) => {

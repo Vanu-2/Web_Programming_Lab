@@ -5,20 +5,11 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Modify Candidate Information</title>
+    <title>Add Candidate Information</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <style>
-        /* Additional styling using Tailwind utility classes */
-        /* Custom hover color for sidebar links */
-        .hover-custom-blue:hover {
-            background-color: #66cc99;
-            /* Soft greenish-blue hover color */
-        }
-    </style>
 </head>
 
 <body class="bg-blue-200 font-sans flex flex-col min-h-screen">
-
     <!-- Sidebar -->
     <div class="bg-gray-300 text-black h-full w-64 fixed left-0 top-0 overflow-y-auto">
         <div class="px-11 py-2 w-full flex justify-center">
@@ -35,10 +26,10 @@
                 <a href="modify_voter_info.html" class="block">Modify Voter Information</a>
             </li>
             <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="modify_candidate_list.html" class="block">Modify Candidate List</a>
+                <a href="modify_candidate_list.html" class="block">Add Candidate</a>
             </li>
             <li class="px-5 py-3 hover:bg-gray-400">
-                <a href="result_publish.html" class="block">Publish result</a>
+                <a href="result_publish.html" class="block">Publish Result</a>
             </li>
         </ul>
     </div>
@@ -46,43 +37,59 @@
     <!-- Main Content -->
     <div class="ml-64 p-8 flex-grow">
         <div class="flex justify-between items-center mb-8">
-            <h1 class="text-3xl font-bold">Modify Candidate Information</h1>
-            <div class="flex items-center space-x-4">
-                <div class="relative">
-                    <button id="profileBtn" class="focus:outline-none">
-                        <img src="l2.png" alt="Profile" class="w-10 h-10 rounded-full cursor-pointer" />
-                    </button>
-
-                    <!-- Dropdown Menu -->
-                    <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
-                        <p class="block px-4 py-2 text-gray-800">
-                            <strong>Email:</strong> <span id="user-email">Loading...</span>
-                        </p>
-                        <p class="block px-4 py-2 text-gray-800">
-                            <strong>Username:</strong> <span id="user-name">Loading...</span>
-                        </p>
-                        <form action="/logout" method="post">
-                            <button type="submit" class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200">Logout</button>
-                        </form>
-                    </div>
+            <h1 class="text-3xl font-bold text-gray-700">Add Candidate Information</h1>
+            <div class="relative">
+                <button id="profileBtn" class="focus:outline-none">
+                    <img src="l2.png" alt="Profile" class="w-10 h-10 rounded-full cursor-pointer" />
+                </button>
+                <div id="profileDropdown" class="hidden absolute right-0 mt-2 w-48 bg-white border border-gray-200 rounded-lg shadow-lg z-20">
+                    <p class="block px-4 py-2 text-gray-800">
+                        <strong>Email:</strong> <span id="user-email">Loading...</span>
+                    </p>
+                    <p class="block px-4 py-2 text-gray-800">
+                        <strong>Username:</strong> <span id="user-name">Loading...</span>
+                    </p>
+                    <form action="/logout" method="post">
+                        <button type="submit" class="w-full text-left block px-4 py-2 text-gray-800 hover:bg-gray-200">Logout</button>
+                    </form>
                 </div>
             </div>
         </div>
 
-        <!-- Candidate Information Table -->
-        <table class="min-w-full bg-white rounded-lg shadow">
-            <thead class="bg-gray-200">
-                <tr>
-                    <th class="py-3 px-4 text-left">Candidate Name</th>
-                    <th class="py-3 px-4 text-left">Email</th>
-                    <th class="py-3 px-4 text-left">Post</th>
-                    <th class="py-3 px-4 text-left">Actions</th>
-                </tr>
-            </thead>
-            <tbody id="candidateTableBody">
-                <!-- Data will be dynamically inserted here -->
-            </tbody>
-        </table>
+        <!-- Add Candidate Form -->
+        <div class="bg-white p-8 rounded-lg shadow-lg border border-gray-300 space-y-6">
+            <form id="addCandidateForm" class="space-y-4">
+                <div class="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div class="flex flex-col">
+                        <label for="candidateName" class="text-gray-700 font-semibold">Candidate Name</label>
+                        <input type="text" id="candidateName" class="mt-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="candidateEmail" class="text-gray-700 font-semibold">Email</label>
+                        <input type="email" id="candidateEmail" class="mt-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="designation" class="text-gray-700 font-semibold">Designation</label>
+                        <select id="designation" class="mt-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <!-- Options will be loaded dynamically -->
+                        </select>
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="symbol" class="text-gray-700 font-semibold">Symbol</label>
+                        <input type="file" id="symbol" class="mt-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required />
+                    </div>
+                    <div class="flex flex-col">
+                        <label for="election" class="text-gray-700 font-semibold">Election</label>
+                        <select id="election" class="mt-2 p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" required>
+                            <!-- Options will be loaded dynamically -->
+                        </select>
+                    </div>
+                </div>
+                <div>
+                    <button type="submit" class="w-full p-4 bg-blue-500 text-white font-semibold rounded-lg shadow-md hover:bg-blue-600 transition duration-300">Add Candidate</button>
+                </div>
+            </form>
+        </div>
     </div>
 
     <!-- Footer -->
@@ -92,141 +99,98 @@
         </div>
     </footer>
 
-    <!-- Script to toggle the profile dropdown on click -->
+    <!-- JavaScript -->
     <script>
-        const profileBtn = document.getElementById("profileBtn");
-        const profileDropdown = document.getElementById("profileDropdown");
-
-        profileBtn.addEventListener("click", () => {
-            profileDropdown.classList.toggle("hidden");
-        });
-
-        window.addEventListener("click", (e) => {
-            if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
-                profileDropdown.classList.add("hidden");
+      document.addEventListener("DOMContentLoaded", () => {
+    // Fetch and populate designations
+    fetch("/getDesignations")
+        .then((response) => response.json())
+        .then((designations) => {
+            if (designations.length > 0) {
+                const designationSelect = document.getElementById("designation");
+                designations.forEach((designation) => {
+                    const option = document.createElement("option");
+                    option.value = designation.designationId; // Corrected value
+                    option.textContent = designation.designationName; // Corrected name
+                    designationSelect.appendChild(option);
+                });
+            } else {
+                alert("No designations found.");
             }
+        })
+        .catch((error) => {
+            console.error("Error fetching designations:", error);
+            alert("Failed to load designations. Please try again.");
         });
 
-        // Fetch user data and populate fields
-        document.addEventListener("DOMContentLoaded", () => {
-            fetch("/getUserData")
-                .then((response) => {
-                    if (!response.ok) {
-                        throw new Error("Failed to fetch user data");
-                    }
-                    return response.json();
-                })
-                .then((data) => {
-                    document.getElementById("user-email").textContent = data.email || "N/A";
-                    document.getElementById("user-name").textContent = data.username || "N/A";
-                })
-                .catch((error) => {
-                    console.error("Error fetching user data:", error);
+    // Fetch and populate elections
+    fetch("/getElections")
+        .then((response) => response.json())
+        .then((elections) => {
+            if (elections.length > 0) {
+                const electionSelect = document.getElementById("election");
+                elections.forEach((election) => {
+                    const option = document.createElement("option");
+                    option.value = election.electionId; // Corrected value
+                    option.textContent = election.electionName; // Corrected name
+                    electionSelect.appendChild(option);
                 });
+            } else {
+                alert("No elections found.");
+            }
+        })
+        .catch((error) => {
+            console.error("Error fetching elections:", error);
+            alert("Failed to load elections. Please try again.");
         });
 
-        // Fetch candidate data and populate table
-        document.addEventListener("DOMContentLoaded", () => {
-            fetch("/candidatesWithPost")
-                .then(response => response.json())
-                .then(candidates => {
-                    const tableBody = document.getElementById("candidateTableBody");
 
-                    candidates.forEach(candidate => {
-                        const row = document.createElement("tr");
-                        row.classList.add("border-t");
 
-                        row.innerHTML = `
-                            <td class="py-3 px-4">
-                                <span class="candidate-name">${candidate.candidateName}</span>
-                                <input type="text" class="edit-candidate-name hidden border border-gray-300 rounded px-2 py-1" value="${candidate.candidateName}" />
-                            </td>
-                            
-                            <td class="py-3 px-4">
-                                <span class="candidate-email">${candidate.c_email}</span>
-                                <input type="text" class="edit-candidate-email hidden border border-gray-300 rounded px-2 py-1" value="${candidate.c_email}" />
-                            </td>
-                            <td class="px-6 py-4 border-b border-gray-200 text-gray-800">${candidate.designations.join(", ")}</td>
-                            <td class="py-3 px-4">
-                                <button class="bg-blue-500 text-white px-3 py-1 rounded hover:bg-blue-700 update-btn">Update</button>
-                                <button class="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-700 hidden save-btn">Save</button>
-                                <button class="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-700 delete-btn">Delete</button>
-                            </td>
-                        `;
+            // Profile dropdown logic
+            const profileBtn = document.getElementById("profileBtn");
+            const profileDropdown = document.getElementById("profileDropdown");
 
-                        tableBody.appendChild(row);
+            profileBtn.addEventListener("click", () => {
+                profileDropdown.classList.toggle("hidden");
+            });
 
-                        const updateBtn = row.querySelector(".update-btn");
-                        const saveBtn = row.querySelector(".save-btn");
-                        const deleteBtn = row.querySelector(".delete-btn");
+            window.addEventListener("click", (e) => {
+                if (!profileBtn.contains(e.target) && !profileDropdown.contains(e.target)) {
+                    profileDropdown.classList.add("hidden");
+                }
+            });
 
-                        const nameSpan = row.querySelector(".candidate-name");
-                        const emailSpan = row.querySelector(".candidate-email");
+            // Add Candidate Form Submission
+            const addCandidateForm = document.getElementById("addCandidateForm");
+            addCandidateForm.addEventListener("submit", (event) => {
+                event.preventDefault();
 
-                        const nameInput = row.querySelector(".edit-candidate-name");
-                        const emailInput = row.querySelector(".edit-candidate-email");
+                const formData = new FormData();
+                formData.append("candidateName", document.getElementById("candidateName").value);
+                formData.append("c_email", document.getElementById("candidateEmail").value);
+                formData.append("symbol", document.getElementById("symbol").files[0]);
+                formData.append("designationId", document.getElementById("designation").value);
+                formData.append("electionId", document.getElementById("election").value);
+                formData.append("password", "defaultpassword123"); // Set a default password
 
-                        updateBtn.addEventListener("click", () => {
-                            nameSpan.classList.add("hidden");
-                            emailSpan.classList.add("hidden");
-                            nameInput.classList.remove("hidden");
-                            emailInput.classList.remove("hidden");
-                            updateBtn.classList.add("hidden");
-                            saveBtn.classList.remove("hidden");
-                        });
-
-                        saveBtn.addEventListener("click", () => {
-                            const updatedName = nameInput.value;
-                            const updatedEmail = emailInput.value;
-
-                            fetch("/updateCandidate", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ 
-                                    id: candidate.id, 
-                                    candidateName: updatedName, 
-                                    c_email: updatedEmail 
-                                })
-                            })
-                            .then(response => response.json())
-                            .then(updatedCandidate => {
-                                nameSpan.textContent = updatedCandidate.candidateName;
-                                emailSpan.textContent = updatedCandidate.c_email;
-
-                                nameSpan.classList.remove("hidden");
-                                emailSpan.classList.remove("hidden");
-                                nameInput.classList.add("hidden");
-                                emailInput.classList.add("hidden");
-                                saveBtn.classList.add("hidden");
-                                updateBtn.classList.remove("hidden");
-                            })
-                            .catch(error => {
-                                console.error("Error updating candidate:", error);
-                                alert("Failed to update candidate.");
-                            });
-                        });
-
-                        deleteBtn.addEventListener("click", () => {
-                            fetch("/deleteCandidate", {
-                                method: "POST",
-                                headers: { "Content-Type": "application/json" },
-                                body: JSON.stringify({ id: candidate.id })
-                            })
-                            .then(response => response.json())
-                            .then(() => {
-                                row.remove();
-                            })
-                            .catch(error => {
-                                console.error("Error deleting candidate:", error);
-                                alert("Failed to delete candidate.");
-                            });
-                        });
+                fetch("/addCandidate", {
+                    method: "POST",
+                    body: formData,
+                })
+                    .then((response) => response.json())
+                    .then((result) => {
+                        if (result.success) {
+                            alert("Candidate added successfully!");
+                            addCandidateForm.reset();
+                        } else {
+                            alert("Failed to add candidate. Please try again.");
+                        }
+                    })
+                    .catch((error) => {
+                        console.error("Error adding candidate:", error);
+                        alert("An error occurred. Please try again.");
                     });
-                })
-                .catch(error => {
-                    console.error("Error fetching candidates:", error);
-                    alert("Failed to load candidate data.");
-                });
+            });
         });
     </script>
 </body>
