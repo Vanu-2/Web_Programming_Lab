@@ -152,37 +152,39 @@
       });
 
       // Form Submission
-      document
-        .getElementById("createElectionForm")
-        .addEventListener("submit", async (event) => {
-          event.preventDefault();
+      document.getElementById("createElectionForm").addEventListener("submit", async (event) => {
+  event.preventDefault();
 
-          const electionName = document.getElementById("electionName").value;
-          const startDate = document.getElementById("startDate").value;
-          const endDate = document.getElementById("endDate").value;
-          const designations = Array.from(
-            document.querySelectorAll("#designationsContainer .flex")
-          ).map((designation) => ({
-            name: designation.querySelector(".designation-name").value,
-            maxPosition: designation.querySelector(".designation-max").value,
-          }));
+  const electionName = document.getElementById("electionName").value;
+  const startDate = document.getElementById("startDate").value;
+  const endDate = document.getElementById("endDate").value;
+  const designations = Array.from(
+    document.querySelectorAll("#designationsContainer .flex")
+  ).map((designation) => ({
+    name: designation.querySelector(".designation-name").value,
+    maxPosition: designation.querySelector(".designation-max").value,
+  }));
 
-          try {
-            const response = await fetch("/admin/create-election", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ electionName, startDate, endDate, designations }),
-            });
+  try {
+    const response = await fetch("/admin/create-election", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ electionName, startDate, endDate, designations }),
+    });
 
-            if (!response.ok) throw new Error("Failed to create election");
+    if (!response.ok) {
+      const errorMessage = await response.text();
+      throw new Error(errorMessage);
+    }
 
-            const message = await response.text();
-            alert(message);
-          } catch (error) {
-            console.error("Error:", error);
-            alert("Failed to create election");
-          }
-        });
+    const message = await response.text();
+    alert(message);
+  } catch (error) {
+    console.error("Error:", error);
+    alert(error.message);
+  }
+});
+
     </script>
   </body>
 </html>
