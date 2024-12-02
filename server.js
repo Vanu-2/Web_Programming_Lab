@@ -64,25 +64,6 @@ app.use(bodyParser.json());
 
 // Get designations for dropdown
 // Fetch designations
-app.get('/getDesignations', (req, res) => {
-  db.query('SELECT designationId, designationName FROM designations', (err, results) => {
-      if (err) {
-          return res.status(500).json({ message: 'Error fetching designations' });
-      }
-      res.json(results); // Results should contain 'id' and 'designationName'
-  });
-});
-
-// Fetch elections
-app.get('/getElections', (req, res) => {
-  db.query('SELECT electionId, electionName FROM elections', (err, results) => {
-      if (err) {
-          return res.status(500).json({ message: 'Error fetching elections' });
-      }
-      res.json(results); // Results should contain 'id' and 'electionName'
-  });
-});
-
 
 // Add candidate route
 app.post('/addCandidate', upload.single('symbol'), (req, res) => {
@@ -228,24 +209,6 @@ app.post("/login", (req, res) => {
     });
   });
 });
-
-// Deny voter
-app.post('/deny_voter', (req, res) => {
-  const voterEmail = req.body.voterId;
-  const sql = `DELETE FROM voter WHERE v_email = ?`;
-  db.query(sql, [voterEmail], (err, result) => {
-      if (err) {
-          console.error('Error deleting voter:', err);
-          res.status(500).send('Error denying voter.');
-          return;
-      }
-      res.send('Voter denied successfully.');
-  });
-});
-
-
-
-
 // Serve static files from the admin folder
 app.use(express.static(__dirname + "/admin"));
 
@@ -283,6 +246,78 @@ app.get("/getUserData", (req, res) => {
     });
   });
 });
+app.get('/getDesignations', (req, res) => {
+  db.query('SELECT designationId, designationName FROM designations', (err, results) => {
+      if (err) {
+          return res.status(500).json({ message: 'Error fetching designations' });
+      }
+      res.json(results); // Results should contain 'id' and 'designationName'
+  });
+});
+app.get("/api/getCandidateDetails", (req, res) => {
+  
+  const candidateId = req.session.candidateId; // Assumes session middleware
+  
+  const query = "SELECT candidateName, c_email FROM candidate WHERE c_email = ?";
+  
+  db.query(query, [candidateId], (err, results) => {
+      if (err) {
+          console.error("Error fetching candidate details:", err);
+          return res.status(500).json({ error: "Server error" });
+      }
+      res.json(results[0]);
+  });
+});
+
+// Update password
+// In your backend (Node.js example)
+app.post('/api/updatePassword', (req, res) => {
+  const { newPassword } = req.body;
+  const candidateId = req.session.userEmail; // Ensure candidateId is set in session
+  console.log(candidateId)
+  if (!candidateId) {
+      return res.status(403).json({ error: "Unauthorized" });
+  }
+
+  const query = "UPDATE candidate SET password = ? WHERE c_email = ?";
+  db.query(query, [newPassword, candidateId], (err, result) => {
+      if (err) {
+          console.error("Error updating password:", err);
+          return res.status(500).json({ error: "Failed to update password" });
+      }
+      res.json({ message: "Password updated successfully!" });
+  });
+});
+// Fetch elections
+app.get('/getElections', (req, res) => {
+  db.query('SELECT electionId, electionName FROM elections', (err, results) => {
+      if (err) {
+          return res.status(500).json({ message: 'Error fetching elections' });
+      }
+      res.json(results); // Results should contain 'id' and 'electionName'
+  });
+});
+
+
+
+// Deny voter
+app.post('/deny_voter', (req, res) => {
+  const voterEmail = req.body.voterId;
+  const sql = `DELETE FROM voter WHERE v_email = ?`;
+  db.query(sql, [voterEmail], (err, result) => {
+      if (err) {
+          console.error('Error deleting voter:', err);
+          res.status(500).send('Error denying voter.');
+          return;
+      }
+      res.send('Voter denied successfully.');
+  });
+});
+
+
+
+
+
 
 // Logout route
 app.post('/logout', (req, res) => {
