@@ -102,40 +102,37 @@
         async function fetchElectionDetails() {
             try {
                 const response = await fetch('/api/election_details');
-                if (!response.ok) {
-                    throw new Error(`HTTP error! Status: ${response.status}`);
-                }
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
 
                 const data = await response.json();
                 const electionDetailsDiv = document.getElementById('election-details');
-
-                electionDetailsDiv.innerHTML = ''; // Clear previous content
+                electionDetailsDiv.innerHTML = '';
 
                 if (data.designations && data.designations.length > 0) {
                     data.designations.forEach(designation => {
                         const designationDiv = document.createElement('div');
                         designationDiv.className = "bg-gray-100 p-4 rounded shadow mb-4";
-                        designationDiv.innerHTML = `<h2 class="text-xl font-semibold mb-2">${designation.designationName}</h2>`;
+                        designationDiv.innerHTML = `
+                            <h2 class="text-xl font-semibold mb-2">${designation.designationName} (Max Vote: ${designation.maxPosition})</h2>
+                        `;
 
                         if (designation.candidate && designation.candidate.length > 0) {
                             designation.candidate.forEach(candidate => {
-    const candidateDiv = document.createElement('div');
-    candidateDiv.className = "flex items-center justify-between py-4 border-b"; // Adjusted padding for better spacing
+                                const candidateDiv = document.createElement('div');
+                                candidateDiv.className = "flex items-center justify-between py-4 border-b";
 
-    const symbolHTML = candidate.symbol
-        ? `<img src="${candidate.symbol}" alt="Symbol" class="inline-block w-12 h-12 mr-4">` // Increased width and height of the symbol
-        : `<span class="text-gray-500">No Symbol</span>`;
-z
-    candidateDiv.innerHTML = `
-        <label class="flex items-center">
-            <input type="checkbox" value="${candidate.email}" class="mr-4 w-6 h-6"> <!-- Larger checkbox -->
-            ${symbolHTML}
-            <span class="text-lg font-semibold">${candidate.candidateName}</span> <!-- Increased font size and weight -->
-        </label>
-    `;
-    designationDiv.appendChild(candidateDiv);
+                                const symbolHTML = candidate.symbol
+                                    ? `<img src="${candidate.symbol}" alt="Symbol" class="inline-block w-12 h-12 mr-4">`
+                                    : `<span class="text-gray-500">No Symbol</span>`;
 
-
+                                candidateDiv.innerHTML = `
+                                    <label class="flex items-center">
+                                        <input type="checkbox" value="${candidate.email}" class="mr-4 w-6 h-6">
+                                        ${symbolHTML}
+                                        <span class="text-lg font-semibold">${candidate.candidateName}</span>
+                                    </label>
+                                `;
+                                designationDiv.appendChild(candidateDiv);
                             });
                         } else {
                             designationDiv.innerHTML += `<p class="text-gray-500">No candidates available for this designation.</p>`;
@@ -148,9 +145,11 @@ z
                 }
             } catch (error) {
                 console.error('Error fetching election details:', error);
-                document.getElementById('election-details').innerHTML = '<p class="text-red-500">Failed to load election details.</p>';
+                document.getElementById('election-details').innerHTML = '<h1 class="text-red-500">No running election </h1>';
             }
         }
+
+        
 
         // Submit votes
         document.getElementById('submit-votes').addEventListener('click', async () => {

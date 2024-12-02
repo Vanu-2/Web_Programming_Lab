@@ -417,56 +417,77 @@ app.post('/api/submit_votes', (req, res) => {
 
 
 app.get("/api/election_details", (req, res) => {
-    const electionId = '7'; 
+  const currentDateTime = new Date();
 
-    const query = `
-        SELECT 
-            d.designationId, 
-            d.designationName, 
-            c.candidateName,
-            c.c_email,  -- Include the candidate's email
-            c.symbol
-        FROM 
-            designations d
-        LEFT JOIN 
-            candidate c ON d.designationId = c.designationId
-        WHERE 
-            d.electionId = ?`;
+  // Query to fetch the active election
+  const electionQuery = `
+      SELECT electionId 
+      FROM elections 
+      WHERE ? BETWEEN startDate AND endDate
+      LIMIT 1`;
 
-    db.query(query, [electionId], (err, results) => {
-        if (err) {
-            console.error("Error fetching election details:", err);
-            return res.status(500).json({ error: "Server error" });
-        }
+  db.query(electionQuery, [currentDateTime], (err, electionResult) => {
+      if (err) {
+          console.error("Error fetching election ID:", err);
+          return res.status(500).json({ error: "Server error" });
+      }
 
-        const designations = {};
-        results.forEach(row => {
-            const { designationId, designationName, candidateName, c_email, symbol } = row;
+      if (electionResult.length === 0) {
+          return res.status(404).json({ error: "No active elections found" });
+      }
 
-            if (!designations[designationId]) {
-                designations[designationId] = {
-                    designationName,
-                    candidate: []
-                };
-            }
+      const electionId = electionResult[0].electionId;
 
-            if (candidateName) {
-                // Convert BLOB to Base64
-                const base64Symbol = symbol 
-                    ? `data:image/jpeg;base64,${symbol.toString('base64')}`
-                    : null;
+      // Query to fetch election details
+      const detailsQuery = `
+          SELECT 
+              d.designationId, 
+              d.designationName, 
+              d.maxPosition,
+              c.candidateName,
+              c.c_email,  
+              c.symbol
+          FROM 
+              designations d
+          LEFT JOIN 
+              candidate c ON d.designationId = c.designationId
+          WHERE 
+              d.electionId = ?`;
 
-                designations[designationId].candidate.push({
-                    candidateName,
-                    email: c_email,
-                    symbol: base64Symbol 
-                });
-            }
-        });
+      db.query(detailsQuery, [electionId], (err, results) => {
+          if (err) {
+              console.error("Error fetching election details:", err);
+              return res.status(500).json({ error: "Server error" });
+          }
 
-        // Send the designations object as JSON
-        res.json({ designations: Object.values(designations) });
-    });
+          const designations = {};
+          results.forEach(row => {
+              const { designationId, designationName, maxPosition, candidateName, c_email, symbol } = row;
+
+              if (!designations[designationId]) {
+                  designations[designationId] = {
+                      designationName,
+                      maxPosition,
+                      candidate: []
+                  };
+              }
+
+              if (candidateName) {
+                  const base64Symbol = symbol
+                      ? `data:image/jpeg;base64,${Buffer.from(symbol).toString('base64')}`
+                      : null;
+
+                  designations[designationId].candidate.push({
+                      candidateName,
+                      email: c_email,
+                      symbol: base64Symbol
+                  });
+              }
+          });
+
+          res.json({ designations: Object.values(designations) });
+      });
+  });
 });
 
 modifyVoterInfo(app);
