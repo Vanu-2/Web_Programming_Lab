@@ -417,7 +417,7 @@ app.post('/api/submit_votes', (req, res) => {
 
 
 app.get("/api/election_details", (req, res) => {
-    const electionId = '1'; 
+    const electionId = '7'; 
 
     const query = `
         SELECT 
