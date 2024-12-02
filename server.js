@@ -87,7 +87,7 @@ app.get('/getElections', (req, res) => {
 // Add candidate route
 app.post('/addCandidate', upload.single('symbol'), (req, res) => {
     const { candidateName, c_email, designationId, electionId } = req.body;
-    const password = 'defaultpassword123'; // Default password for new candidates
+    const password = '123'; // Default password for new candidates
     const symbol = fs.readFileSync(req.file.path); // Reading uploaded symbol image file
 
     // Check if the email already exists
@@ -297,11 +297,18 @@ app.post('/logout', (req, res) => {
 });
 
 
-
 app.get("/api/elections", (req, res) => {
-  const query = "SELECT electionId, electionName FROM elections"; 
+  const currentDateTime = new Date();
+  
+  // Ensure that the query compares the current datetime with the startDate and endDate.
+  const query = `
+    SELECT electionId, electionName 
+    FROM elections 
+    WHERE ? BETWEEN startDate AND endDate 
+    LIMIT 1
+  `;
 
-  db.query(query, (err, results) => {
+  db.query(query, [currentDateTime], (err, results) => {
       if (err) {
           console.error("Error fetching elections:", err);
           return res.status(500).json({ error: "Server error" });
@@ -310,111 +317,148 @@ app.get("/api/elections", (req, res) => {
   });
 });
 
+
 // Fetch election details by election ID
 app.post('/api/submit_votes', (req, res) => {
   if (req.session && req.session.userEmail) {
-      const voterEmail = req.session.userEmail; 
+      const voterEmail = req.session.userEmail;
       console.log('Logged in email:', voterEmail);
 
-      const { candidates } = req.body;
+      const { candidates, electionId: providedElectionId } = req.body; // Provided electionId, if any
 
-      
       if (!Array.isArray(candidates)) {
           return res.status(400).json({ error: 'Invalid request format.' });
       }
 
-      // Check if the voter has already voted
-      const checkQuery = 'SELECT * FROM vote WHERE v_email = ?';
-      db.query(checkQuery, [voterEmail], (err, results) => {
-          if (err) {
-              console.error('Database error:', err);
-              return res.status(500).json({ error: 'Database error.' });
+      // Determine electionId if not provided
+      const currentDateTime = new Date();
+      const electionQuery = `
+          SELECT electionId 
+          FROM elections 
+          WHERE ? BETWEEN startDate AND endDate 
+          LIMIT 1`;
+
+      const electionIdPromise = new Promise((resolve, reject) => {
+          if (providedElectionId) {
+              // Use the provided electionId if available
+              resolve(providedElectionId);
+          } else {
+              // Fetch the current active electionId
+              db.query(electionQuery, [currentDateTime], (err, results) => {
+                  if (err) {
+                      console.error('Database error while fetching electionId:', err);
+                      reject({ status: 500, error: 'Database error while fetching electionId.' });
+                  } else if (results.length === 0) {
+                      reject({ status: 404, error: 'No active election found.' });
+                  } else {
+                      resolve(results[0].electionId);
+                  }
+              });
           }
+      });
 
-          if (results.length > 0) {
-              return res.status(403).json({ error: 'You have already voted.' });
-          }
+      electionIdPromise
+          .then((electionId) => {
+              // Check if the voter has already voted in this election
+              const checkVoteQuery = 'SELECT * FROM vote WHERE v_email = ? AND electionId = ?';
+              db.query(checkVoteQuery, [voterEmail, electionId], (err, results) => {
+                  if (err) {
+                      console.error('Database error:', err);
+                      return res.status(500).json({ error: 'Database error.' });
+                  }
 
-          // Get the next BallotNo
-          const ballotNoQuery = 'SELECT MAX(BallotNo) AS maxBallotNo FROM vote';
-          db.query(ballotNoQuery, (err, results) => {
-              if (err) {
-                  console.error('Database error:', err);
-                  return res.status(500).json({ error: 'Failed to generate BallotNo.' });
-              }
+                  if (results.length > 0) {
+                      return res.status(403).json({ error: 'You have already voted in this election.' });
+                  }
 
-              const nextBallotNo = (results[0].maxBallotNo || 0) + 1;
-
-              // Check if we do not give any vote  
-              if (candidates.length === 0) {
-                  // Insert votes for all candidates with is_vote = 0
-                  const allCandidatesQuery = 'SELECT id FROM candidate';
-                  db.query(allCandidatesQuery, (err, candidateResults) => {
+                  // Get the next BallotNo for the current electionId
+                  const ballotNoQuery = 'SELECT MAX(BallotNo) AS maxBallotNo FROM vote WHERE electionId = ?';
+                  db.query(ballotNoQuery, [electionId], (err, results) => {
                       if (err) {
                           console.error('Database error:', err);
-                          return res.status(500).json({ error: 'Failed to retrieve candidates.' });
+                          return res.status(500).json({ error: 'Failed to generate BallotNo.' });
                       }
 
-                      const insertPromises = candidateResults.map((candidate) => new Promise((resolve, reject) => {
-                          const insertQuery = 'INSERT INTO vote (candidate_id, v_email, BallotNo, is_vote) VALUES (?, ?, ?, 0)';
-                          db.query(insertQuery, [candidate.id, voterEmail, nextBallotNo], (err) => {
-                              if (err) {
-                                  reject(err);
-                              } else {
-                                  resolve();
-                              }
-                          });
-                      }));
+                      const nextBallotNo = (results[0].maxBallotNo || 0) + 1;
 
-                      Promise.all(insertPromises)
-                          .then(() => {
-                              res.json({ message: 'Vote submitted without selecting any candidate.', BallotNo: nextBallotNo });
-                          })
-                          .catch((err) => {
-                              console.error('Error inserting votes:', err);
-                              res.status(500).json({ error: 'Failed to submit votes.' });
+                      // Check if no vote is selected
+                      if (candidates.length === 0) {
+                          // Insert votes for all candidates with is_vote = 0
+                          const allCandidatesQuery = 'SELECT id FROM candidate';
+                          db.query(allCandidatesQuery, (err, candidateResults) => {
+                              if (err) {
+                                  console.error('Database error:', err);
+                                  return res.status(500).json({ error: 'Failed to retrieve candidates.' });
+                              }
+
+                              const insertPromises = candidateResults.map((candidate) => new Promise((resolve, reject) => {
+                                  const insertQuery = 'INSERT INTO vote (candidate_id, v_email, BallotNo, is_vote, electionId) VALUES (?, ?, ?, 0, ?)';
+                                  db.query(insertQuery, [candidate.id, voterEmail, nextBallotNo, electionId], (err) => {
+                                      if (err) {
+                                          reject(err);
+                                      } else {
+                                          resolve();
+                                      }
+                                  });
+                              }));
+
+                              Promise.all(insertPromises)
+                                  .then(() => {
+                                      res.json({ message: 'Vote submitted without selecting any candidate.', BallotNo: nextBallotNo });
+                                  })
+                                  .catch((err) => {
+                                      console.error('Error inserting votes:', err);
+                                      res.status(500).json({ error: 'Failed to submit votes.' });
+                                  });
                           });
+                      } else {
+                          // Resolve candidate IDs for the selected candidates
+                          const candidateIdQuery = 'SELECT id FROM candidate WHERE c_email IN (?)';
+                          db.query(candidateIdQuery, [candidates], (err, idResults) => {
+                              if (err) {
+                                  console.error('Database error:', err);
+                                  return res.status(500).json({ error: 'Failed to retrieve candidate IDs.' });
+                              }
+
+                              const candidateIds = idResults.map(row => row.id);
+
+                              // Insert votes for selected candidates with is_vote = 1
+                              const insertPromises = candidateIds.map((candidateId) => new Promise((resolve, reject) => {
+                                  const insertQuery = 'INSERT INTO vote (candidate_id, v_email, BallotNo, is_vote, electionId) VALUES (?, ?, ?, 1, ?)';
+                                  db.query(insertQuery, [candidateId, voterEmail, nextBallotNo, electionId], (err) => {
+                                      if (err) {
+                                          reject(err);
+                                      } else {
+                                          resolve();
+                                      }
+                                  });
+                              }));
+
+                              Promise.all(insertPromises)
+                                  .then(() => {
+                                      res.json({ message: 'Votes submitted successfully!', BallotNo: nextBallotNo });
+                                  })
+                                  .catch((err) => {
+                                      console.error('Error inserting votes:', err);
+                                      res.status(500).json({ error: 'Failed to submit votes.' });
+                                  });
+                          });
+                      }
                   });
+              });
+          })
+          .catch((err) => {
+              if (err.status && err.error) {
+                  res.status(err.status).json({ error: err.error });
               } else {
-                  // Resolve candidate IDs for the selected candidates
-                  const candidateIdQuery = 'SELECT id FROM candidate WHERE c_email IN (?)';
-                  db.query(candidateIdQuery, [candidates], (err, idResults) => {
-                      if (err) {
-                          console.error('Database error:', err);
-                          return res.status(500).json({ error: 'Failed to retrieve candidate IDs.' });
-                      }
-
-                      const candidateIds = idResults.map(row => row.id);
-
-                      // Insert votes for selected candidates with is_vote = 1
-                      const insertPromises = candidateIds.map((candidateId) => new Promise((resolve, reject) => {
-                          const insertQuery = 'INSERT INTO vote (candidate_id, v_email, BallotNo, is_vote) VALUES (?, ?, ?, 1)';
-                          db.query(insertQuery, [candidateId, voterEmail, nextBallotNo], (err) => {
-                              if (err) {
-                                  reject(err);
-                              } else {
-                                  resolve();
-                              }
-                          });
-                      }));
-
-                      Promise.all(insertPromises)
-                          .then(() => {
-                              res.json({ message: 'Votes submitted successfully!', BallotNo: nextBallotNo });
-                          })
-                          .catch((err) => {
-                              console.error('Error inserting votes:', err);
-                              res.status(500).json({ error: 'Failed to submit votes.' });
-                          });
-                  });
+                  console.error('Unexpected error:', err);
+                  res.status(500).json({ error: 'Unexpected error occurred.' });
               }
           });
-      });
   } else {
       res.status(401).json({ error: 'User not logged in.' });
   }
 });
-
 
 app.get("/api/election_details", (req, res) => {
   const currentDateTime = new Date();
