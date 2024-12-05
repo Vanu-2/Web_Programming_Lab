@@ -573,236 +573,317 @@ modifyVoterInfo(app);
 
 // Endpoint to fetch results
 
-app.get('/results', (req, res) => {
-  const electionId = 1; 
-  const sql = `
-      SELECT 
-          d.designationId, 
-          d.designationName, 
-          c.candidateName, 
-          c.id, 
-          COUNT(v.vote_id) AS voteCount,
-          CASE 
-              WHEN COUNT(v.vote_id) = (
-                  SELECT MAX(voteCount)
-                  FROM (
-                      SELECT 
-                          c.designationId, 
-                          COUNT(v.vote_id) AS voteCount
-                      FROM candidate c
-                      LEFT JOIN vote v ON c.id = v.candidate_id AND v.is_vote = 1
-                      GROUP BY c.id
-                  ) AS maxVotes 
-                  WHERE maxVotes.designationId = d.designationId
-              ) THEN 1
-              ELSE 0
-          END AS isWinner
-      FROM 
-          candidate c
-      JOIN 
-          designations d ON c.designationId = d.designationId
-      LEFT JOIN 
-          vote v ON c.id = v.candidate_id AND v.is_vote = 1
-      WHERE 
-          d.electionId = ?
-      GROUP BY 
-          c.id
+// Function to get the electionId based on the current date
+function getElectionId(date, callback) {
+  const electionQuery = `
+    SELECT electionId 
+    FROM elections 
+    WHERE ? BETWEEN startDate AND endDate
+    LIMIT 1`;
+
+  db.query(electionQuery, [date], (error, results) => {
+    if (error) {
+      console.error('Error fetching election ID:', error);
+      return callback(error, null);
+    }
+    if (results.length > 0) {
+      return callback(null, results[0].electionId);
+    } else {
+      return callback(null, null);
+    }
+  });
+}
+
+// Function to get the vote status based on electionId
+function getVoteStatus(electionId, callback) {
+  const voteStatusQuery = `
+     SELECT 
+            v.BallotNo,
+            d.designationName,
+            CASE 
+                WHEN v.is_vote = 0 THEN 'Invalid - No vote cast'
+                WHEN COUNT(v.vote_id) > d.maxPosition THEN 'Invalid - Exceeds max position'
+                ELSE 'Valid'
+            END AS voteStatus
+        FROM vote v
+        JOIN candidate c ON v.candidate_id = c.id
+        JOIN designations d ON c.designationId = d.designationId
+        WHERE v.electionId = ?
+        GROUP BY v.BallotNo, d.designationId
+        ORDER BY v.BallotNo, d.designationId`;
+
+  db.query(voteStatusQuery, [electionId], (error, results) => {
+    if (error) {
+      console.error('Error fetching vote status:', error);
+      return callback(error, null);
+    }
+    callback(null, results);
+  });
+}
+
+// Example route handler in an Express app
+app.get('/vote-status', (req, res) => {
+  const currentDate = new Date(); // Get the current date
+
+  getElectionId(currentDate, (error, electionId) => {
+    if (error) {
+      return res.status(500).send({ message: 'Internal server error' });
+    }
+
+    if (!electionId) {
+      return res.status(404).send({ message: 'Election not found' });
+    }
+
+    getVoteStatus(electionId, (error, voteStatus) => {
+      if (error) {
+        return res.status(500).send({ message: 'Internal server error' });
+      }
+      res.json(voteStatus);
+    });
+  });
+});
+
+// Route to get the election ID based on the date
+app.get('/get-election-id', (req, res) => {
+  const currentDate = new Date(); // Get the current date or use a date parameter from the query
+  getElectionId(currentDate, (err, electionId) => {
+    if (err) {
+      return res.status(500).json({ message: err.message });
+    }
+    res.json({ electionId });
+  });
+});
+
+app.post('/save-invalid-vote', (req, res) => {
+  const invalidVoteData = req.body; // The data sent from the frontend
+
+  if (!Array.isArray(invalidVoteData) || invalidVoteData.length === 0) {
+      return res.status(400).json({ message: 'No invalid vote data provided.' });
+  }
+
+  const { electionId } = invalidVoteData[0]; // Assuming electionId is the same for all invalid votes in the request
+
+  // First, delete the previous invalid vote data for the given electionId
+  const deleteQuery = `
+    DELETE FROM voteStatus
+    WHERE electionId = ?;
   `;
 
-  db.query(sql, [electionId], (error, results) => {
-      if (error) {
-          return res.status(500).json({ error: 'Failed to fetch results' });
+  db.query(deleteQuery, [electionId], (err) => {
+      if (err) {
+          console.error('Error deleting previous invalid votes:', err);
+          return res.status(500).json({ message: 'Failed to delete previous invalid votes' });
       }
+
+      // Now, prepare the query for inserting multiple rows of invalid vote data
+      const insertQuery = `
+          INSERT INTO voteStatus (BallotNo, designationName, voteStatus, electionId)
+          VALUES ?
+      `;
+
+      // Map the data into a format suitable for bulk insert
+      const values = invalidVoteData.map(item => [item.BallotNo, item.designationName, item.voteStatus, item.electionId]);
+
+      // Insert the new invalid vote data
+      db.query(insertQuery, [values], (error, results) => {
+          if (error) {
+              console.error('Error saving invalid vote data:', error);
+              return res.status(500).json({ message: 'Failed to save invalid vote data.' });
+          }
+
+          res.status(200).json({ message: 'Invalid vote data saved successfully.' });
+      });
+  });
+});
+
+
+
+app.get('/vote-winners', (req, res) => {
+  const { electionId } = req.query;
+
+  const query = `
+      WITH ValidVotes AS (
+          SELECT 
+              v.candidate_id,
+              v.electionId,
+              c.candidateName AS candidateName,
+              d.designationName,
+              d.maxPosition,
+              COUNT(v.vote_id) AS voteCount
+          FROM 
+              vote v
+          JOIN 
+              candidate c ON v.candidate_id = c.id
+          JOIN 
+              designations d ON c.designationId = d.designationId
+          WHERE 
+              v.BallotNo IN (
+                  SELECT vs.BallotNo 
+                  FROM voteStatus vs
+                  WHERE vs.voteStatus = 'Valid'
+              )
+          GROUP BY 
+              v.candidate_id, v.electionId, c.candidateName, d.designationName, d.maxPosition
+      ),
+      RankedVotes AS (
+          SELECT 
+              candidate_id,
+              electionId,
+              candidateName,
+              designationName,
+              maxPosition,
+              voteCount,
+              DENSE_RANK() OVER (PARTITION BY designationName ORDER BY voteCount DESC) AS rank
+          FROM 
+              ValidVotes
+      )
+      SELECT 
+          electionId,
+          designationName,
+          candidateName,
+          voteCount,
+          CASE 
+              WHEN rank <= maxPosition THEN 'Winner'
+              ELSE 'Loser'
+          END AS status
+      FROM 
+          RankedVotes
+      WHERE 
+          electionId = ?
+      ORDER BY 
+          electionId, designationName, voteCount DESC;
+  `;
+
+  db.query(query, [electionId], (err, results) => {
+      if (err) {
+          console.error('Error fetching vote winners:', err);
+          res.status(500).json({ error: 'Failed to fetch vote winners' });
+      } else {
+          res.json(results);
+      }
+  });
+});
+
+app.post('/publish-results', (req, res) => {
+  const { electionId } = req.body;
+
+  // First, delete the previous results for the given electionId
+  const deleteQuery = `
+    DELETE FROM results 
+    WHERE electionId = ?;
+  `;
+
+  db.query(deleteQuery, [electionId], (err) => {
+      if (err) {
+          console.error('Error deleting previous results:', err);
+          return res.status(500).json({ error: 'Failed to delete previous results' });
+      }
+
+      // Now insert the new results
+      const query = `
+          INSERT INTO results (electionId, designationId, candidateEmail, voteCount, isWinner)
+          SELECT 
+              rv.electionId,
+              d.designationId,
+              c.c_email AS candidateEmail,
+              rv.voteCount,
+              CASE WHEN rv.rank <= d.maxPosition THEN 1 ELSE 0 END AS isWinner
+          FROM (
+              WITH ValidVotes AS (
+                  SELECT 
+                      v.candidate_id,
+                      v.electionId,
+                      c.candidateName,
+                      d.designationName,
+                      d.maxPosition,
+                      COUNT(v.vote_id) AS voteCount
+                  FROM 
+                      vote v
+                  JOIN 
+                      candidate c ON v.candidate_id = c.id
+                  JOIN 
+                      designations d ON c.designationId = d.designationId
+                  WHERE 
+                      v.BallotNo IN (
+                          SELECT vs.BallotNo 
+                          FROM voteStatus vs
+                          WHERE vs.voteStatus = 'Valid'
+                      )
+                  GROUP BY 
+                      v.candidate_id, v.electionId, c.candidateName, d.designationName, d.maxPosition
+              ),
+              RankedVotes AS (
+                  SELECT 
+                      candidate_id,
+                      electionId,
+                      candidateName,
+                      designationName,
+                      maxPosition,
+                      voteCount,
+                      DENSE_RANK() OVER (PARTITION BY designationName ORDER BY voteCount DESC) AS rank
+                  FROM 
+                      ValidVotes
+              )
+              SELECT 
+                  electionId,
+                  designationName,
+                  candidate_id,
+                  voteCount,
+                  rank
+              FROM 
+                  RankedVotes
+              WHERE 
+                  electionId = ?
+          ) rv
+          JOIN candidate c ON rv.candidate_id = c.id
+          JOIN designations d ON c.designationId = d.designationId;
+      `;
+
+      db.query(query, [electionId], (err, results) => {
+          if (err) {
+              console.error('Error publishing results:', err);
+              res.status(500).json({ error: 'Failed to publish results' });
+          } else {
+              res.json({ message: 'Results published successfully!' });
+          }
+      });
+  });
+});
+
+
+
+app.get('/api/results', (req, res) => {
+  const { electionId } = req.query;
+
+  if (!electionId) {
+      return res.status(400).json({ error: 'Election ID is required' });
+  }
+
+  const query = `
+      SELECT 
+          d.designationName AS post, 
+          r.candidateEmail AS candidateName, 
+          r.voteCount, 
+          r.isWinner 
+      FROM 
+          results r 
+      JOIN 
+          designations d ON r.designationId = d.designationId 
+      WHERE 
+          r.electionId = ?;
+  `;
+
+  db.query(query, [electionId], (err, results) => {
+      if (err) {
+          console.error('Error fetching results:', err);
+          return res.status(500).json({ error: 'Database query error' });
+      }
+
       res.json(results);
   });
 });
 
-// Route to publish results
-app.post('/publish-results', (req, res) => {
-const electionId = 1; // Fixed election ID
 
-// DELETE query to remove existing results for this election
-const sqlDelete = 'DELETE FROM results WHERE electionId = ?';
-
-//   add new results
-const sqlInsert = `
-    INSERT INTO results (electionId, designationId, candidateEmail, voteCount, isWinner)
-    VALUES (?, ?, ?, ?, ?)
-    ON DUPLICATE KEY UPDATE voteCount = ?, isWinner = ?;`;
-
-const results = req.body; 
-
-// Start by deleting existing results
-db.query(sqlDelete, [electionId], (deleteError) => {
-    if (deleteError) {
-        console.error('Error deleting old results:', deleteError);
-        return res.status(500).json({ error: 'Failed to delete old results: ' + deleteError.message });
-    }
-
-    // Insert new results
-    const queries = results.map((row) => {
-        return new Promise((resolve, reject) => {
-            db.query(
-                sqlInsert,
-                [
-                    electionId,
-                    row.designationId,
-                    row.c_email,
-                    row.voteCount,
-                    row.isWinner,
-                    row.voteCount,
-                    row.isWinner,
-                ],
-                (insertError) => {
-                    if (insertError) return reject(insertError);
-                    resolve();
-                }
-            );
-        });
-    });
-
-    
-    Promise.all(queries)
-        .then(() => res.json({ message: 'Results published successfully!' }))
-        .catch((err) => {
-            console.error('Error publishing results:', err);
-            res.status(500).json({ error: 'Failed to publish results: ' + err.message });
-     });
- });
-});
-
-
-// Endpoint to publish results
-
-app.post('/publish-results', (req, res) => {
-
-  const electionId = 1; 
-
-  const sqlInsert = `
-
-      INSERT INTO results (electionId, designationId, c_email, voteCount, isWinner)
-
-      VALUES (?, ?, ?, ?, ?)
-
-      ON DUPLICATE KEY UPDATE voteCount = ?, isWinner = ?;`;
-
-
-  const results = req.body; 
-
-
-  const queries = results.map(row => {
-
-      return new Promise((resolve, reject) => {
-
-          db.query(sqlInsert, [
-
-              electionId,
-
-              row.designationId,
-
-              row.c_email,
-
-              row.voteCount,
-
-              row.isWinner,
-
-              row.voteCount,
-
-              row.isWinner
-
-          ], (error) => {
-
-              if (error) return reject(error);
-
-              resolve();
-
-          });
-
-      });
-
-  });
-
-
-  Promise.all(queries)
-
-      .then(() => res.json({ message: 'Results published successfully!' }))
-
-      .catch(err => {
-
-          console.error('Error publishing results:', err);
-
-          res.status(500).json({ error: 'Failed to publish results: ' + err.message });
-
-      });
-
-});
-
-// Endpoint to get results from the results table
-
-app.get('/api/results', (req, res) => {
-
-  const query = `
-
-      SELECT 
-
-          d.designationName AS post, 
-
-          r.candidateEmail AS candidateName, 
-
-          r.voteCount, 
-
-          r.isWinner 
-
-      FROM 
-
-          results r 
-
-      JOIN 
-
-          designations d ON r.designationId = d.designationId 
-
-      WHERE 
-
-          r.electionId = 1;`; // Fixed electionId = 1
-
-
-  db.query(query, (err, results) => {
-
-      if (err) {
-
-          console.error('Error fetching results:', err);
-
-          return res.status(500).json({ error: 'Database query error' });
-
-      }
-      // Group results by designation and find winners
-
-      const groupedResults = results.reduce((acc, result) => {
-
-          const { post, candidateName, voteCount, isWinner } = result;
-
-
-          if (!acc[post]) {
-              acc[post] = {
-                  post,
-                  candidates: [],
-                  winner: null
-              };
-          }
-          acc[post].candidates.push({ candidateName, voteCount });
-          // Determine the winner
-
-          if (isWinner) {
-
-              acc[post].winner = { candidateName, voteCount };
-
-          }
-          return acc;
-
-      }, {});
-      res.json(Object.values(groupedResults)); 
-  });
-});
 
 //  candidate name and position from database
 
